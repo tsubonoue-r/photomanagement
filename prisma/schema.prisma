@@ -1,0 +1,321 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// Organization & User Management
+// =============================================================================
+
+/// Organization represents a company or team using the system
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(200)
+  slug      String   @unique @db.VarChar(100)
+  plan      PlanType @default(FREE)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  members            OrganizationMember[]
+  projects           Project[]
+  blackboardTemplates BlackboardTemplate[]
+
+  @@map("organizations")
+}
+
+/// PlanType represents the subscription plan
+enum PlanType {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+/// User represents a system user
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique @db.VarChar(255)
+  name      String   @db.VarChar(100)
+  avatarUrl String?  @map("avatar_url") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organizationMemberships OrganizationMember[]
+  projectMemberships      ProjectMember[]
+  photosCreated           Photo[]
+
+  @@map("users")
+}
+
+/// OrganizationMember represents the membership of a user in an organization
+model OrganizationMember {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  role           OrganizationRole @default(MEMBER)
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+/// OrganizationRole represents the role of a user in an organization
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+// =============================================================================
+// Project Management
+// =============================================================================
+
+/// Project represents a construction project
+model Project {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  name           String        @db.VarChar(200)
+  code           String?       @db.VarChar(50)
+  description    String?       @db.Text
+  clientName     String?       @map("client_name") @db.VarChar(200)
+  contractorName String?       @map("contractor_name") @db.VarChar(200)
+  location       String?       @db.Text
+  startDate      DateTime?     @map("start_date") @db.Date
+  endDate        DateTime?     @map("end_date") @db.Date
+  status         ProjectStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      ProjectMember[]
+  categories   Category[]
+  photos       Photo[]
+  blackboards  Blackboard[]
+  albums       Album[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("projects")
+}
+
+/// ProjectStatus represents the status of a project
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+  SUSPENDED
+}
+
+/// ProjectMember represents the membership of a user in a project
+model ProjectMember {
+  id        String      @id @default(uuid()) @db.Uuid
+  projectId String      @map("project_id") @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  role      ProjectRole @default(MEMBER)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+/// ProjectRole represents the role of a user in a project
+enum ProjectRole {
+  MANAGER
+  MEMBER
+  VIEWER
+}
+
+// =============================================================================
+// Category Management (Construction Types/Classifications)
+// =============================================================================
+
+/// Category represents a classification hierarchy for photos
+/// (e.g., Construction Type > Category > Sub-category)
+model Category {
+  id        String       @id @default(uuid()) @db.Uuid
+  projectId String       @map("project_id") @db.Uuid
+  parentId  String?      @map("parent_id") @db.Uuid
+  name      String       @db.VarChar(200)
+  type      CategoryType @default(CATEGORY)
+  code      String?      @db.VarChar(10)
+  sortOrder Int          @default(0) @map("sort_order")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children Category[] @relation("CategoryHierarchy")
+  photos   Photo[]
+
+  @@index([projectId])
+  @@index([parentId])
+  @@index([sortOrder])
+  @@map("categories")
+}
+
+/// CategoryType represents the level of the category in the hierarchy
+enum CategoryType {
+  CONSTRUCTION_TYPE // 工種
+  CATEGORY          // 種別
+  SUBCATEGORY       // 細別
+}
+
+// =============================================================================
+// Photo Management
+// =============================================================================
+
+/// Photo represents a construction photo
+model Photo {
+  id            String    @id @default(uuid()) @db.Uuid
+  projectId     String    @map("project_id") @db.Uuid
+  categoryId    String?   @map("category_id") @db.Uuid
+  createdById   String    @map("created_by") @db.Uuid
+  title         String?   @db.VarChar(200)
+  description   String?   @db.Text
+  filePath      String    @map("file_path") @db.Text
+  thumbnailPath String?   @map("thumbnail_path") @db.Text
+  fileSize      BigInt    @map("file_size")
+  mimeType      String    @map("mime_type") @db.VarChar(50)
+  width         Int?
+  height        Int?
+  takenAt       DateTime? @map("taken_at")
+  takenLocation Json?     @map("taken_location") @db.JsonB
+  exifData      Json?     @map("exif_data") @db.JsonB
+  blackboardId  String?   @map("blackboard_id") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  // Relations
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy  User        @relation(fields: [createdById], references: [id])
+  blackboard Blackboard? @relation(fields: [blackboardId], references: [id], onDelete: SetNull)
+  albumPhotos AlbumPhoto[]
+
+  @@index([projectId])
+  @@index([categoryId])
+  @@index([createdById])
+  @@index([blackboardId])
+  @@index([takenAt])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("photos")
+}
+
+// =============================================================================
+// Blackboard (Electronic Blackboard) Management
+// =============================================================================
+
+/// BlackboardTemplate represents a template for electronic blackboards
+model BlackboardTemplate {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  name           String   @db.VarChar(100)
+  fields         Json     @db.JsonB
+  isDefault      Boolean  @default(false) @map("is_default")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  blackboards  Blackboard[]
+
+  @@index([organizationId])
+  @@map("blackboard_templates")
+}
+
+/// Blackboard represents an electronic blackboard attached to photos
+model Blackboard {
+  id         String             @id @default(uuid()) @db.Uuid
+  projectId  String             @map("project_id") @db.Uuid
+  templateId String?            @map("template_id") @db.Uuid
+  content    Json               @db.JsonB
+  position   BlackboardPosition @default(BOTTOM_RIGHT)
+  size       Int                @default(30)
+  createdAt  DateTime           @default(now()) @map("created_at")
+  updatedAt  DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  project  Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  template BlackboardTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  photos   Photo[]
+
+  @@index([projectId])
+  @@index([templateId])
+  @@map("blackboards")
+}
+
+/// BlackboardPosition represents the position of the blackboard overlay
+enum BlackboardPosition {
+  TOP_LEFT
+  TOP_RIGHT
+  BOTTOM_LEFT
+  BOTTOM_RIGHT
+}
+
+// =============================================================================
+// Album Management
+// =============================================================================
+
+/// Album represents a collection of photos
+model Album {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  name      String   @db.VarChar(200)
+  description String? @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  photos  AlbumPhoto[]
+
+  @@index([projectId])
+  @@map("albums")
+}
+
+/// AlbumPhoto represents the many-to-many relationship between albums and photos
+model AlbumPhoto {
+  id        String   @id @default(uuid()) @db.Uuid
+  albumId   String   @map("album_id") @db.Uuid
+  photoId   String   @map("photo_id") @db.Uuid
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  album Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@unique([albumId, photoId])
+  @@index([albumId])
+  @@index([photoId])
+  @@index([sortOrder])
+  @@map("album_photos")
+}
