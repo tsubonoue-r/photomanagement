@@ -3,15 +3,17 @@
 /**
  * Blackboard Management Page
  * 黒板管理ページ
- * 電子小黒板の作成・編集・プレビュー
+ * 電子小黒板の作成・編集・プレビュー・合成
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import {
   BlackboardEditor,
   BlackboardPreview,
   BlackboardTemplateSelector,
+  BlackboardComposer,
+  BatchComposer,
 } from '@/components/blackboard';
 import type {
   BlackboardTemplate,
@@ -19,19 +21,22 @@ import type {
   SketchData,
 } from '@/types/blackboard';
 import { defaultTemplates } from '@/data/default-templates';
-import { compositeBlackboardToPhoto, createIntegrityInfo } from '@/lib/blackboard';
+import { compositeBlackboardToPhoto } from '@/lib/blackboard';
+import { Upload } from 'lucide-react';
 
-type ViewMode = 'templates' | 'editor' | 'preview';
+type ViewMode = 'templates' | 'editor' | 'composer' | 'batch';
 
 export default function BlackboardPage() {
   const params = useParams();
   const projectId = params.id as string;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [viewMode, setViewMode] = useState<ViewMode>('templates');
   const [selectedTemplate, setSelectedTemplate] = useState<BlackboardTemplate | null>(null);
   const [fieldValues, setFieldValues] = useState<BlackboardFieldValue[]>([]);
   const [sketchData, setSketchData] = useState<SketchData | undefined>(undefined);
   const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isComposing, setIsComposing] = useState(false);
   const [composedImageUrl, setComposedImageUrl] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -53,10 +58,19 @@ export default function BlackboardPage() {
     setFieldValues(newValues);
   }, []);
 
-  // Handle composition
+  // Handle file selection
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoUrl(URL.createObjectURL(file));
+    }
+  }, []);
+
+  // Handle composition (legacy)
   const handleCompose = useCallback(async () => {
     if (!photoUrl || !selectedTemplate) {
-      setError('写真URLとテンプレートを選択してください');
+      setError('Please select a photo and template');
       return;
     }
 
@@ -78,7 +92,7 @@ export default function BlackboardPage() {
       );
       setComposedImageUrl(result.imageUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '合成に失敗しました');
+      setError(err instanceof Error ? err.message : 'Composition failed');
     } finally {
       setIsComposing(false);
     }
@@ -147,6 +161,7 @@ export default function BlackboardPage() {
           marginBottom: '24px',
           borderBottom: '1px solid #e5e7eb',
           paddingBottom: '12px',
+          flexWrap: 'wrap',
         }}
       >
         <button
@@ -162,7 +177,7 @@ export default function BlackboardPage() {
             cursor: 'pointer',
           }}
         >
-          テンプレート選択
+          Template Selection
         </button>
         <button
           onClick={() => setViewMode('editor')}
@@ -183,28 +198,49 @@ export default function BlackboardPage() {
             cursor: selectedTemplate ? 'pointer' : 'not-allowed',
           }}
         >
-          黒板エディタ
+          Blackboard Editor
         </button>
         <button
-          onClick={() => setViewMode('preview')}
+          onClick={() => setViewMode('composer')}
           disabled={!selectedTemplate}
           style={{
             padding: '8px 16px',
             fontSize: '14px',
-            fontWeight: viewMode === 'preview' ? '600' : '400',
+            fontWeight: viewMode === 'composer' ? '600' : '400',
             color:
-              viewMode === 'preview'
+              viewMode === 'composer'
                 ? '#3b82f6'
                 : selectedTemplate
                   ? '#6b7280'
                   : '#d1d5db',
-            backgroundColor: viewMode === 'preview' ? '#eff6ff' : 'transparent',
+            backgroundColor: viewMode === 'composer' ? '#eff6ff' : 'transparent',
             border: 'none',
             borderRadius: '6px',
             cursor: selectedTemplate ? 'pointer' : 'not-allowed',
           }}
         >
-          写真合成プレビュー
+          Photo Composer
+        </button>
+        <button
+          onClick={() => setViewMode('batch')}
+          disabled={!selectedTemplate}
+          style={{
+            padding: '8px 16px',
+            fontSize: '14px',
+            fontWeight: viewMode === 'batch' ? '600' : '400',
+            color:
+              viewMode === 'batch'
+                ? '#3b82f6'
+                : selectedTemplate
+                  ? '#6b7280'
+                  : '#d1d5db',
+            backgroundColor: viewMode === 'batch' ? '#eff6ff' : 'transparent',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: selectedTemplate ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Batch Composer
         </button>
       </div>
 
@@ -268,8 +304,8 @@ export default function BlackboardPage() {
         </div>
       )}
 
-      {/* Preview view */}
-      {viewMode === 'preview' && selectedTemplate && (
+      {/* Composer view */}
+      {viewMode === 'composer' && selectedTemplate && (
         <div>
           <div
             style={{
@@ -279,77 +315,158 @@ export default function BlackboardPage() {
               borderRadius: '8px',
             }}
           >
-            <label
-              style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                marginBottom: '8px',
-              }}
-            >
-              写真URL（テスト用）
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                value={photoUrl}
-                onChange={e => setPhotoUrl(e.target.value)}
-                placeholder="https://example.com/photo.jpg"
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <span style={{ fontWeight: '500', color: '#374151' }}>
+                  Template: {selectedTemplate.name}
+                </span>
+                {selectedTemplate.description && (
+                  <span style={{ marginLeft: '12px', color: '#6b7280', fontSize: '13px' }}>
+                    {selectedTemplate.description}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setViewMode('templates')}
                 style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  fontSize: '14px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  backgroundColor: '#ffffff',
                   border: '1px solid #d1d5db',
                   borderRadius: '4px',
-                }}
-              />
-              <button
-                onClick={handleCompose}
-                disabled={isComposing || !photoUrl}
-                style={{
-                  padding: '8px 16px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#ffffff',
-                  backgroundColor: isComposing ? '#9ca3af' : '#3b82f6',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: isComposing || !photoUrl ? 'not-allowed' : 'pointer',
+                  cursor: 'pointer',
                 }}
               >
-                {isComposing ? '合成中...' : '合成実行'}
+                Change Template
+              </button>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 16px',
+                fontSize: '14px',
+                color: '#374151',
+                backgroundColor: '#ffffff',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              <Upload size={16} />
+              Select Photo
+            </button>
+          </div>
+
+          <BlackboardComposer
+            template={selectedTemplate}
+            values={fieldValues}
+            sketchData={sketchData}
+            photoUrl={photoUrl}
+            photoFile={photoFile || undefined}
+            isLoading={isComposing}
+          />
+
+          {/* Blackboard Preview */}
+          <div style={{ marginTop: 24 }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
+              Blackboard Preview
+            </h3>
+            <BlackboardPreview
+              template={selectedTemplate}
+              values={fieldValues}
+              scale={0.8}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Batch Composer view */}
+      {viewMode === 'batch' && selectedTemplate && (
+        <div>
+          <div
+            style={{
+              marginBottom: '24px',
+              padding: '16px',
+              backgroundColor: '#f9fafb',
+              borderRadius: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <span style={{ fontWeight: '500', color: '#374151' }}>
+                  Template: {selectedTemplate.name}
+                </span>
+                <span style={{ marginLeft: '12px', color: '#6b7280', fontSize: '13px' }}>
+                  Batch mode - Compose multiple photos at once
+                </span>
+              </div>
+              <button
+                onClick={() => setViewMode('templates')}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                Change Template
               </button>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-            <div style={{ flex: '1 1 300px' }}>
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 300px', maxWidth: 400 }}>
               <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
-                黒板プレビュー
+                Blackboard Preview
               </h3>
               <BlackboardPreview
                 template={selectedTemplate}
                 values={fieldValues}
-                scale={1}
+                scale={0.6}
               />
+              <div style={{ marginTop: 16 }}>
+                <button
+                  onClick={() => setViewMode('editor')}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    color: '#3b82f6',
+                    backgroundColor: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Edit Blackboard Content
+                </button>
+              </div>
             </div>
 
-            {composedImageUrl && (
-              <div style={{ flex: '2 1 500px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
-                  合成結果
-                </h3>
-                <img
-                  src={composedImageUrl}
-                  alt="Composed photo with blackboard"
-                  style={{
-                    maxWidth: '100%',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  }}
-                />
-              </div>
-            )}
+            <div style={{ flex: '2 1 500px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
+                Batch Composition
+              </h3>
+              <BatchComposer
+                template={selectedTemplate}
+                values={fieldValues}
+                sketchData={sketchData}
+              />
+            </div>
           </div>
         </div>
       )}

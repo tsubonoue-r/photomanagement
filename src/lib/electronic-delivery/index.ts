@@ -64,6 +64,14 @@ export {
 export type { XmlGeneratorConfig } from "./photo-xml";
 
 export {
+  generateIndexDXml,
+  buildIndexDInfo,
+  serializeIndexDToXml,
+  isValidIndexDXml,
+} from "./index-xml";
+export type { IndexDInfo, IndexDGeneratorConfig } from "./index-xml";
+
+export {
   ERROR_CODES,
   WARNING_CODES,
   DeliveryValidator,
@@ -72,6 +80,37 @@ export {
 } from "./validator";
 export type { ValidatorConfig } from "./validator";
 
+export {
+  createDeliveryArchive,
+  createZipArchive,
+  createZipArchiveStream,
+  getDirectoryEntries,
+  getArchiveFileList,
+  estimateArchiveSize,
+} from "./archive";
+export type {
+  ArchiveConfig,
+  ArchiveProgress,
+  ArchiveResult,
+  FileInput,
+} from "./archive";
+
+export {
+  generateDeliveryReport,
+  formatReportAsText,
+  formatReportAsJson,
+  formatPhotoListAsCsv,
+} from "./report";
+export type {
+  DeliveryReport,
+  ConstructionInfo,
+  FileStatistics,
+  FolderStructureInfo,
+  FileInfo,
+  ValidationSummary,
+  PhotoListItem,
+} from "./report";
+
 import type {
   ProjectPhoto,
   ExportConfig,
@@ -79,11 +118,19 @@ import type {
   ExportProgress,
   ExportMetadata,
   ElectronicDeliveryFolder,
+  ValidationResult,
 } from "@/types/electronic-delivery";
 import { generateFolderStructure } from "./folder-structure";
 import { generatePhotoXml } from "./photo-xml";
+import { generateIndexDXml } from "./index-xml";
 import { DeliveryValidator, formatValidationResult } from "./validator";
+import { createDeliveryArchive, type ArchiveResult } from "./archive";
+import { generateDeliveryReport, formatReportAsText, type DeliveryReport } from "./report";
 
+/**
+ * 電子納品エクスポーター
+ * 写真データを電子納品形式に変換し、ZIPアーカイブを生成します。
+ */
 export class ElectronicDeliveryExporter {
   private validator: DeliveryValidator;
   private progressCallback?: (progress: ExportProgress) => void;
@@ -92,13 +139,25 @@ export class ElectronicDeliveryExporter {
     this.validator = new DeliveryValidator();
   }
 
+  /**
+   * 進捗コールバックを設定する
+   * @param callback 進捗コールバック関数
+   */
   onProgress(callback: (progress: ExportProgress) => void): void {
     this.progressCallback = callback;
   }
 
+  /**
+   * 電子納品エクスポートを実行する
+   * @param photos 写真データ配列
+   * @param config エクスポート設定
+   * @param fileContents ファイル内容のマップ (オプション)
+   * @returns エクスポート結果
+   */
   async export(
     photos: ProjectPhoto[],
-    config: ExportConfig
+    config: ExportConfig,
+    fileContents?: Map<string, Buffer>
   ): Promise<ExportResult> {
     const startTime = Date.now();
 
@@ -153,7 +212,9 @@ export class ElectronicDeliveryExporter {
         totalFiles: targetPhotos.length,
       });
 
+      // PHOTO.XMLとINDEX_D.XMLを生成
       generatePhotoXml(folder, config.metadata);
+      generateIndexDXml(config.metadata);
 
       this.updateProgress({
         currentStep: "validating",
@@ -184,6 +245,25 @@ export class ElectronicDeliveryExporter {
         totalFiles: targetPhotos.length,
       });
 
+      // ZIPアーカイブを生成
+      let archiveResult: ArchiveResult | undefined;
+      if (config.outputFormat === "zip" && fileContents) {
+        archiveResult = await createDeliveryArchive(
+          folder,
+          config.metadata,
+          fileContents
+        );
+
+        if (!archiveResult.success) {
+          return {
+            success: false,
+            error: archiveResult.error || "アーカイブ生成に失敗しました",
+            validationResult,
+            processingTimeMs: Date.now() - startTime,
+          };
+        }
+      }
+
       this.updateProgress({
         currentStep: "completed",
         totalSteps: 6,
@@ -195,6 +275,7 @@ export class ElectronicDeliveryExporter {
 
       return {
         success: true,
+        fileSize: archiveResult?.fileSize,
         validationResult,
         processingTimeMs: Date.now() - startTime,
       };
@@ -216,19 +297,138 @@ export class ElectronicDeliveryExporter {
     }
   }
 
+  /**
+   * ZIPアーカイブを生成して返す
+   * @param photos 写真データ配列
+   * @param config エクスポート設定
+   * @param fileContents ファイル内容のマップ
+   * @returns ZIPアーカイブのBuffer
+   */
+  async exportToZip(
+    photos: ProjectPhoto[],
+    config: ExportConfig,
+    fileContents: Map<string, Buffer>
+  ): Promise<{ buffer: Buffer; result: ExportResult }> {
+    const startTime = Date.now();
+
+    const targetPhotos = config.photoIds
+      ? photos.filter((p) => config.photoIds!.includes(p.id))
+      : photos;
+
+    if (targetPhotos.length === 0) {
+      throw new Error("エクスポート対象の写真がありません");
+    }
+
+    const folder = generateFolderStructure(targetPhotos);
+    const validationResult = this.validator.validate(folder);
+
+    if (!validationResult.isValid) {
+      throw new Error("検証エラー: " + validationResult.errors.map(e => e.message).join(", "));
+    }
+
+    const archiveResult = await createDeliveryArchive(
+      folder,
+      config.metadata,
+      fileContents
+    );
+
+    if (!archiveResult.success || !archiveResult.buffer) {
+      throw new Error(archiveResult.error || "アーカイブ生成に失敗しました");
+    }
+
+    return {
+      buffer: archiveResult.buffer,
+      result: {
+        success: true,
+        fileSize: archiveResult.fileSize,
+        validationResult,
+        processingTimeMs: Date.now() - startTime,
+      },
+    };
+  }
+
+  /**
+   * フォルダ構造を生成する
+   * @param photos 写真データ配列
+   * @returns 電子納品フォルダ構造
+   */
   generateFolder(photos: ProjectPhoto[]): ElectronicDeliveryFolder {
     return generateFolderStructure(photos);
   }
 
-  generateXml(folder: ElectronicDeliveryFolder, metadata: ExportMetadata): string {
+  /**
+   * PHOTO.XMLを生成する
+   * @param folder 電子納品フォルダ構造
+   * @param metadata エクスポートメタデータ
+   * @returns XML文字列
+   */
+  generatePhotoXml(folder: ElectronicDeliveryFolder, metadata: ExportMetadata): string {
     return generatePhotoXml(folder, metadata);
   }
 
+  /**
+   * INDEX_D.XMLを生成する
+   * @param metadata エクスポートメタデータ
+   * @returns XML文字列
+   */
+  generateIndexDXml(metadata: ExportMetadata): string {
+    return generateIndexDXml(metadata);
+  }
+
+  /**
+   * バリデーションを実行する
+   * @param folder 電子納品フォルダ構造
+   * @returns バリデーション結果（テキスト形式）
+   */
   validate(folder: ElectronicDeliveryFolder): string {
     const result = this.validator.validate(folder);
     return formatValidationResult(result);
   }
 
+  /**
+   * バリデーション結果オブジェクトを取得する
+   * @param folder 電子納品フォルダ構造
+   * @returns バリデーション結果
+   */
+  validateWithResult(folder: ElectronicDeliveryFolder): ValidationResult {
+    return this.validator.validate(folder);
+  }
+
+  /**
+   * 納品レポートを生成する
+   * @param folder 電子納品フォルダ構造
+   * @param metadata エクスポートメタデータ
+   * @param validationResult バリデーション結果（オプション）
+   * @returns 納品レポート
+   */
+  generateReport(
+    folder: ElectronicDeliveryFolder,
+    metadata: ExportMetadata,
+    validationResult?: ValidationResult
+  ): DeliveryReport {
+    return generateDeliveryReport(folder, metadata, validationResult);
+  }
+
+  /**
+   * 納品レポートをテキスト形式で取得する
+   * @param folder 電子納品フォルダ構造
+   * @param metadata エクスポートメタデータ
+   * @param validationResult バリデーション結果（オプション）
+   * @returns テキスト形式のレポート
+   */
+  getReportText(
+    folder: ElectronicDeliveryFolder,
+    metadata: ExportMetadata,
+    validationResult?: ValidationResult
+  ): string {
+    const report = this.generateReport(folder, metadata, validationResult);
+    return formatReportAsText(report);
+  }
+
+  /**
+   * 進捗を更新する
+   * @param progress 進捗情報
+   */
   private updateProgress(progress: ExportProgress): void {
     if (this.progressCallback) {
       this.progressCallback(progress);
@@ -236,4 +436,7 @@ export class ElectronicDeliveryExporter {
   }
 }
 
+/**
+ * デフォルトのエクスポーターインスタンス
+ */
 export const defaultExporter = new ElectronicDeliveryExporter();

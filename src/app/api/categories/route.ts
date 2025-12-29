@@ -1,6 +1,13 @@
+/**
+ * Categories API Routes
+ * GET /api/categories - List categories
+ * POST /api/categories - Create category
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { requireAuth, withProjectAccess } from "@/lib/authorization";
 
 const createCategorySchema = z.object({
   name: z.string().min(1, "カテゴリ名は必須です"),
@@ -10,9 +17,17 @@ const createCategorySchema = z.object({
   isStandard: z.boolean().optional().default(false),
 });
 
-// GET /api/categories - カテゴリ一覧取得
+/**
+ * GET /api/categories
+ * List categories for a project
+ * Requires: Authentication + Project VIEWER role
+ */
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("projectId");
 
@@ -22,6 +37,10 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Check project access (VIEWER role for reading)
+    const accessError = await withProjectAccess(projectId, "VIEWER");
+    if (accessError) return accessError;
 
     // 親カテゴリから再帰的に取得
     const categories = await prisma.category.findMany({
@@ -57,11 +76,23 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/categories - カテゴリ作成
+/**
+ * POST /api/categories
+ * Create a new category
+ * Requires: Authentication + Project MEMBER role
+ */
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
+
     const body = await request.json();
     const validated = createCategorySchema.parse(body);
+
+    // Check project access (MEMBER role for creating)
+    const accessError = await withProjectAccess(validated.projectId, "MEMBER");
+    if (accessError) return accessError;
 
     // 同じ親の下で最大のsortOrderを取得
     const maxSortOrder = await prisma.category.aggregate({

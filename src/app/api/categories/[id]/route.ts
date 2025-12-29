@@ -1,6 +1,14 @@
+/**
+ * Category Detail API Routes
+ * GET /api/categories/[id] - Get category details
+ * PATCH /api/categories/[id] - Update category
+ * DELETE /api/categories/[id] - Delete category
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { requireAuth, withResourceAccess } from "@/lib/authorization";
 
 const updateCategorySchema = z.object({
   name: z.string().min(1).optional(),
@@ -8,13 +16,25 @@ const updateCategorySchema = z.object({
   sortOrder: z.number().optional(),
 });
 
-// GET /api/categories/[id] - カテゴリ詳細取得
+/**
+ * GET /api/categories/[id]
+ * Get category details
+ * Requires: Authentication + Project VIEWER role
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
+
     const { id } = await params;
+
+    // Check resource access (category -> project -> VIEWER role)
+    const accessError = await withResourceAccess("category", id, "VIEWER");
+    if (accessError) return accessError;
 
     const category = await prisma.category.findUnique({
       where: { id },
@@ -53,13 +73,26 @@ export async function GET(
   }
 }
 
-// PATCH /api/categories/[id] - カテゴリ更新
+/**
+ * PATCH /api/categories/[id]
+ * Update category
+ * Requires: Authentication + Project MEMBER role
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
+
     const { id } = await params;
+
+    // Check resource access (category -> project -> MEMBER role for updates)
+    const accessError = await withResourceAccess("category", id, "MEMBER");
+    if (accessError) return accessError;
+
     const body = await request.json();
     const validated = updateCategorySchema.parse(body);
 
@@ -107,13 +140,25 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/categories/[id] - カテゴリ削除
+/**
+ * DELETE /api/categories/[id]
+ * Delete category
+ * Requires: Authentication + Project MANAGER role
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
+
     const { id } = await params;
+
+    // Check resource access (category -> project -> MANAGER role for delete)
+    const accessError = await withResourceAccess("category", id, "MANAGER");
+    if (accessError) return accessError;
 
     // 子カテゴリや写真が紐づいている場合は削除不可
     const category = await prisma.category.findUnique({

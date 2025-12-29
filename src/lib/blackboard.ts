@@ -1,4 +1,9 @@
-import type { Blackboard, BlackboardTemplate, BlackboardFieldValue, BlackboardCompositeOptions, BlackboardCompositeResult, SketchData, SketchPath, IntegrityInfo } from '@/types/blackboard'
+/**
+ * Blackboard utilities for client-side rendering
+ * Server-side Sharp-based composition is in blackboard-server.ts
+ */
+
+import type { Blackboard, BlackboardTemplate, BlackboardFieldValue, BlackboardCompositeOptions, BlackboardCompositeResult, SketchData, IntegrityInfo } from '@/types/blackboard'
 
 export async function generateIntegrityHash(data: string): Promise<string> {
   const encoder = new TextEncoder()
@@ -104,12 +109,68 @@ export async function compositeBlackboardToPhoto(photoUrl: string, template: Bla
   })
 }
 
-export function generateBlackboardSvg(template: BlackboardTemplate, values: BlackboardFieldValue[]): string {
-  const valueMap = new Map(values.map(v => [v.fieldId, v.value])); let fieldsHtml = ''
+/**
+ * Generate SVG representation of blackboard (works in both client and server)
+ */
+export function generateBlackboardSvg(template: BlackboardTemplate, values: BlackboardFieldValue[], sketchData?: SketchData): string {
+  const valueMap = new Map(values.map(v => [v.fieldId, v.value]))
+  let fieldsHtml = ''
+
   template.fields.forEach(field => {
-    const x = (field.x / 100) * template.width, y = (field.y / 100) * template.height, width = (field.width / 100) * template.width, height = (field.height / 100) * template.height
-    if (field.type === 'sketch') { fieldsHtml += `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${field.fontColor || '#ffffff'}" stroke-dasharray="5,5" /><text x="${x + 5}" y="${y + 15}" fill="${field.fontColor || '#ffffff'}" font-size="12">${field.label}</text>` }
-    else { const value = valueMap.get(field.id); const displayValue = value !== undefined && value !== null ? formatFieldValue(value, field.type) : ''; fieldsHtml += `<text x="${x}" y="${y + 12}" fill="${field.fontColor || '#ffffff'}" font-size="12">${field.label}:</text><text x="${x}" y="${y + height - 5}" fill="${field.fontColor || '#ffffff'}" font-size="${field.fontSize || 16}">${displayValue}</text><line x1="${x}" y1="${y + height}" x2="${x + width}" y2="${y + height}" stroke="${field.fontColor || '#ffffff'}" stroke-width="1" />` }
+    const x = (field.x / 100) * template.width
+    const y = (field.y / 100) * template.height
+    const width = (field.width / 100) * template.width
+    const height = (field.height / 100) * template.height
+
+    if (field.type === 'sketch') {
+      fieldsHtml += `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${field.fontColor || '#ffffff'}" stroke-dasharray="5,5" />`
+      fieldsHtml += `<text x="${x + 5}" y="${y + 15}" fill="${field.fontColor || '#ffffff'}" font-size="12">${field.label}</text>`
+
+      // Render sketch data as SVG paths
+      if (sketchData && sketchData.paths.length > 0) {
+        const scaleX = width / sketchData.width
+        const scaleY = height / sketchData.height
+        sketchData.paths.forEach(path => {
+          if (path.tool === 'eraser' || path.points.length < 2) return
+          if (path.tool === 'pen') {
+            let d = `M ${x + path.points[0].x * scaleX} ${y + path.points[0].y * scaleY}`
+            for (let i = 1; i < path.points.length; i++) {
+              d += ` L ${x + path.points[i].x * scaleX} ${y + path.points[i].y * scaleY}`
+            }
+            fieldsHtml += `<path d="${d}" stroke="${path.strokeColor}" stroke-width="${path.strokeWidth}" fill="none" stroke-linecap="round" stroke-linejoin="round" />`
+          } else if (path.tool === 'line') {
+            const start = path.points[0], end = path.points[path.points.length - 1]
+            fieldsHtml += `<line x1="${x + start.x * scaleX}" y1="${y + start.y * scaleY}" x2="${x + end.x * scaleX}" y2="${y + end.y * scaleY}" stroke="${path.strokeColor}" stroke-width="${path.strokeWidth}" />`
+          } else if (path.tool === 'rectangle') {
+            const start = path.points[0], end = path.points[path.points.length - 1]
+            const rx = x + Math.min(start.x, end.x) * scaleX
+            const ry = y + Math.min(start.y, end.y) * scaleY
+            const rw = Math.abs(end.x - start.x) * scaleX
+            const rh = Math.abs(end.y - start.y) * scaleY
+            fieldsHtml += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" stroke="${path.strokeColor}" stroke-width="${path.strokeWidth}" fill="none" />`
+          } else if (path.tool === 'circle') {
+            const start = path.points[0], end = path.points[path.points.length - 1]
+            const cx = x + ((start.x + end.x) / 2) * scaleX
+            const cy = y + ((start.y + end.y) / 2) * scaleY
+            const radiusX = (Math.abs(end.x - start.x) / 2) * scaleX
+            const radiusY = (Math.abs(end.y - start.y) / 2) * scaleY
+            fieldsHtml += `<ellipse cx="${cx}" cy="${cy}" rx="${radiusX}" ry="${radiusY}" stroke="${path.strokeColor}" stroke-width="${path.strokeWidth}" fill="none" />`
+          }
+        })
+      }
+    } else {
+      const value = valueMap.get(field.id)
+      const displayValue = value !== undefined && value !== null ? formatFieldValue(value, field.type) : ''
+      const textAnchor = field.textAlign === 'center' ? 'middle' : field.textAlign === 'right' ? 'end' : 'start'
+      let textX = x
+      if (field.textAlign === 'center') textX = x + width / 2
+      else if (field.textAlign === 'right') textX = x + width
+
+      fieldsHtml += `<text x="${x}" y="${y + 12}" fill="${field.fontColor || '#ffffff'}" font-size="12">${field.label}:</text>`
+      fieldsHtml += `<text x="${textX}" y="${y + height - 5}" fill="${field.fontColor || '#ffffff'}" font-size="${field.fontSize || 16}" text-anchor="${textAnchor}">${displayValue}</text>`
+      fieldsHtml += `<line x1="${x}" y1="${y + height}" x2="${x + width}" y2="${y + height}" stroke="${field.fontColor || '#ffffff'}" stroke-width="1" />`
+    }
   })
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${template.width}" height="${template.height}" viewBox="0 0 ${template.width} ${template.height}"><rect width="${template.width}" height="${template.height}" fill="${template.backgroundColor}" /><rect x="${template.borderWidth / 2}" y="${template.borderWidth / 2}" width="${template.width - template.borderWidth}" height="${template.height - template.borderWidth}" fill="none" stroke="${template.borderColor}" stroke-width="${template.borderWidth}" />${fieldsHtml}</svg>`
 }

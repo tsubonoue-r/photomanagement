@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth, withProjectAccess } from '@/lib/authorization';
 import type {
   Photo,
   PhotoFilters,
@@ -151,12 +152,23 @@ function applySort(photos: Photo[], sort: PhotoSort): Photo[] {
 /**
  * GET /api/photos
  * Get photos with filters, sorting, and pagination
+ * Requires: Authentication + Project VIEWER role
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
 
+    const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
+
+    // Check project access (VIEWER role required for reading)
+    if (projectId) {
+      const accessError = await withProjectAccess(projectId, 'VIEWER');
+      if (accessError) return accessError;
+    }
+
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
     const filters = parseFilters(searchParams);
@@ -205,9 +217,14 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/photos
  * Bulk actions on photos
+ * Requires: Authentication + Project MEMBER role (for write operations)
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
+
     const body: BulkActionRequest = await request.json();
     const { action, photoIds, payload } = body;
 
@@ -222,6 +239,16 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+    }
+
+    // For bulk actions, we need to verify access to the target project
+    // Determine required role based on action
+    const requiredRole = action === 'delete' ? 'MANAGER' : 'MEMBER';
+
+    // Check project access if targetProjectId is provided
+    if (payload?.targetProjectId) {
+      const accessError = await withProjectAccess(payload.targetProjectId, requiredRole);
+      if (accessError) return accessError;
     }
 
     const response: BulkActionResponse = {

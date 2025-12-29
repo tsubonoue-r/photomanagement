@@ -1,4 +1,6 @@
 export { BlackboardEditor } from './BlackboardEditor'
 export { BlackboardPreview, BlackboardCard } from './BlackboardPreview'
 export { BlackboardTemplateSelector } from './BlackboardTemplateSelector'
+export { BlackboardComposer } from './BlackboardComposer'
+export { BatchComposer } from './BatchComposer'
 export * from './fields'

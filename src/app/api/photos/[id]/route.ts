@@ -10,6 +10,7 @@ import {
   getSignedDownloadUrl,
   generatePhotoKey,
 } from '@/lib/storage';
+import { requireAuth, withResourceAccess } from '@/lib/authorization';
 
 interface RouteParams {
   params: Promise<{
@@ -20,12 +21,17 @@ interface RouteParams {
 /**
  * GET /api/photos/[id]
  * Get photo details and URLs
+ * Requires: Authentication + Project VIEWER role
  */
 export async function GET(
   request: NextRequest,
   { params }: RouteParams
 ) {
   try {
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
+
     const { id } = await params;
 
     if (!id || !isValidUUID(id)) {
@@ -34,6 +40,10 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    // Check resource access (photo -> project -> VIEWER role)
+    const accessError = await withResourceAccess('photo', id, 'VIEWER');
+    if (accessError) return accessError;
 
     // Check if photo exists (try common extensions)
     const extensions = ['jpg', 'png'];
@@ -83,12 +93,17 @@ export async function GET(
 /**
  * DELETE /api/photos/[id]
  * Delete a photo and all its thumbnails
+ * Requires: Authentication + Project MANAGER role
  */
 export async function DELETE(
   request: NextRequest,
   { params }: RouteParams
 ) {
   try {
+    // Check authentication
+    const { session, error: authError } = await requireAuth();
+    if (authError) return authError;
+
     const { id } = await params;
 
     if (!id || !isValidUUID(id)) {
@@ -97,6 +112,10 @@ export async function DELETE(
         { status: 400 }
       );
     }
+
+    // Check resource access (photo -> project -> MANAGER role for delete)
+    const accessError = await withResourceAccess('photo', id, 'MANAGER');
+    if (accessError) return accessError;
 
     // Find the photo extension
     const extensions = ['jpg', 'png'];

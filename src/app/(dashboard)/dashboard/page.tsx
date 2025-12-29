@@ -1,7 +1,8 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { ProjectList } from '@/components/projects';
+import type { ProjectWithCounts } from '@/types/project';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -17,20 +18,16 @@ export default async function DashboardPage() {
     prisma.album.count(),
   ]);
 
-  // Get recent projects
-  const recentProjects = await prisma.project.findMany({
-    take: 5,
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      status: true,
-      createdAt: true,
+  // Get initial projects for SSR
+  const initialProjects = await prisma.project.findMany({
+    take: 20,
+    orderBy: { updatedAt: 'desc' },
+    include: {
       _count: {
         select: {
           photos: true,
           albums: true,
+          members: true,
         },
       },
     },
@@ -153,69 +150,8 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent Projects */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Projects</h2>
-          </div>
-          <div className="divide-y divide-gray-200">
-            {recentProjects.length === 0 ? (
-              <div className="px-6 py-12 text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No projects</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Get started by creating a new project.
-                </p>
-              </div>
-            ) : (
-              recentProjects.map((project) => (
-                <Link
-                  key={project.id}
-                  href={`/projects/${project.id}/photos`}
-                  className="block px-6 py-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">
-                        {project.name}
-                      </h3>
-                      {project.description && (
-                        <p className="text-sm text-gray-500 line-clamp-1">
-                          {project.description}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span>{project._count.photos} photos</span>
-                      <span>{project._count.albums} albums</span>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          String(project.status) === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {project.status}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
-        </div>
+        {/* Project Management Section */}
+        <ProjectList initialProjects={initialProjects as ProjectWithCounts[]} />
       </main>
     </div>
   );
