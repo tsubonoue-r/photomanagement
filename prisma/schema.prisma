@@ -67,6 +67,7 @@ model Organization {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   members             OrganizationMember[]
+  invitations         OrganizationInvitation[]
   projects            Project[]
   blackboardTemplates BlackboardTemplate[]
 
@@ -96,6 +97,8 @@ model User {
   organizationMemberships OrganizationMember[]
   projectMemberships      ProjectMember[]
   photosCreated           Photo[]
+  invitationsUsed         OrganizationInvitation[] @relation("InvitationUsedBy")
+  invitationsCreated      OrganizationInvitation[] @relation("InvitationCreatedBy")
 
   @@map("users")
 }
@@ -129,6 +132,28 @@ enum OrganizationRole {
   ADMIN
   MEMBER
   VIEWER
+}
+
+model OrganizationInvitation {
+  id             String           @id @default(cuid())
+  organizationId String           @map("organization_id")
+  email          String?          @db.VarChar(255)
+  role           OrganizationRole @default(MEMBER)
+  code           String           @unique @db.VarChar(64)
+  expiresAt      DateTime         @map("expires_at")
+  usedAt         DateTime?        @map("used_at")
+  usedById       String?          @map("used_by_id")
+  createdById    String           @map("created_by_id")
+  createdAt      DateTime         @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  usedBy       User?        @relation("InvitationUsedBy", fields: [usedById], references: [id], onDelete: SetNull)
+  createdBy    User         @relation("InvitationCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([code])
+  @@index([expiresAt])
+  @@map("organization_invitations")
 }
 
 // =============================================================================

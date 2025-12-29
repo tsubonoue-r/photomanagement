@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ToastProvider } from "@/components/ui/ToastProvider";
+import { OfflineIndicator } from "@/components/ui/OfflineIndicator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +33,10 @@ export default function RootLayout({
       >
         <SessionProvider>
           <ThemeProvider defaultTheme="system" storageKey="photomanagement-theme">
-            {children}
+            <ToastProvider>
+              {children}
+              <OfflineIndicator position="bottom" autoHide />
+            </ToastProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>
