@@ -1,190 +1,55 @@
 /**
- * Album Photos API Routes
- * POST /api/albums/[id]/photos - Add photo to album
- * DELETE /api/albums/[id]/photos - Remove photo from album
- * PATCH /api/albums/[id]/photos - Reorder photos
+ * Album Photos API Route
+ * GET /api/albums/[id]/photos - Get available photos for album
+ *
+ * Issue #10: Album and Report Output
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  addPhotoToAlbum,
-  removePhotoFromAlbum,
-  reorderPhotos,
-} from '@/lib/album/album-service';
-import type {
-  AlbumApiResponse,
-  AlbumPhoto,
-  Album,
-  ReorderPhotosInput,
-} from '@/types/album';
+import { getAlbum, getAvailablePhotos } from '@/lib/album/album-service';
 
-interface RouteParams {
+interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-interface AddPhotoInput {
-  photoUrl: string;
-  title: string;
-  description?: string;
-}
-
-interface RemovePhotoInput {
-  photoId: string;
-}
-
 /**
- * POST /api/albums/[id]/photos
- * Add photo to album
+ * GET /api/albums/[id]/photos
+ * Get photos available to add to this album
  */
-export async function POST(
-  request: NextRequest,
-  { params }: RouteParams
-): Promise<NextResponse<AlbumApiResponse<AlbumPhoto>>> {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
-    const body = await request.json() as AddPhotoInput;
+    const { id } = await context.params;
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
 
-    if (!body.photoUrl || !body.title) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Photo URL and title are required',
-        },
-        { status: 400 }
-      );
-    }
-
-    const photo = await addPhotoToAlbum(
-      id,
-      body.photoUrl,
-      body.title,
-      body.description
-    );
-
-    if (!photo) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Album not found',
-        },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: photo,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error('Error adding photo to album:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to add photo',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * DELETE /api/albums/[id]/photos
- * Remove photo from album
- */
-export async function DELETE(
-  request: NextRequest,
-  { params }: RouteParams
-): Promise<NextResponse<AlbumApiResponse<{ deleted: boolean }>>> {
-  try {
-    const { id } = await params;
-    const body = await request.json() as RemovePhotoInput;
-
-    if (!body.photoId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Photo ID is required',
-        },
-        { status: 400 }
-      );
-    }
-
-    const deleted = await removePhotoFromAlbum(id, body.photoId);
-
-    if (!deleted) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Album or photo not found',
-        },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: { deleted: true },
-    });
-  } catch (error) {
-    console.error('Error removing photo from album:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to remove photo',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * PATCH /api/albums/[id]/photos
- * Reorder photos in album
- */
-export async function PATCH(
-  request: NextRequest,
-  { params }: RouteParams
-): Promise<NextResponse<AlbumApiResponse<Album>>> {
-  try {
-    const { id } = await params;
-    const body = await request.json() as ReorderPhotosInput;
-
-    if (!body.photoIds || !Array.isArray(body.photoIds)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Photo IDs array is required',
-        },
-        { status: 400 }
-      );
-    }
-
-    const album = await reorderPhotos(id, body);
-
+    // Get album to find project ID
+    const album = await getAlbum(id);
     if (!album) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Album not found',
-        },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Album not found' }, { status: 404 });
     }
 
+    if (!album.projectId) {
+      return NextResponse.json({
+        photos: [],
+        total: 0,
+        message: 'Album is not associated with a project',
+      });
+    }
+
+    const result = await getAvailablePhotos(album.projectId, id, page, pageSize);
+
     return NextResponse.json({
-      success: true,
-      data: album,
+      photos: result.photos,
+      total: result.total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(result.total / pageSize),
     });
   } catch (error) {
-    console.error('Error reordering photos:', error);
+    console.error('Failed to fetch available photos:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to reorder photos',
-      },
+      { error: 'Failed to fetch available photos' },
       { status: 500 }
     );
   }
