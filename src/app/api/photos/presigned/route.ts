@@ -10,7 +10,8 @@ import {
   getSignedDownloadUrl,
   generatePhotoKey,
   getPublicUrl,
-} from '@/lib/storage';
+  isLocalStorageMode,
+} from '@/lib/storage-factory';
 import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/types/photo';
 
 // Route segment config for Next.js App Router
@@ -39,6 +40,8 @@ interface PresignedUploadResponse {
   thumbnailLargeKey: string;
   publicUrl: string;
   expiresIn: number;
+  /** Indicates local storage mode - client should use direct upload instead of presigned */
+  useDirectUpload?: boolean;
 }
 
 /**
@@ -117,6 +120,8 @@ export async function POST(request: NextRequest) {
       thumbnailLargeKey,
       publicUrl: getPublicUrl(originalKey),
       expiresIn,
+      // In local mode, indicate that client should use direct upload API
+      useDirectUpload: isLocalStorageMode(),
     };
 
     return NextResponse.json(response);

@@ -5,7 +5,6 @@ import { z } from "zod";
 const createCategorySchema = z.object({
   name: z.string().min(1, "カテゴリ名は必須です"),
   code: z.string().optional(),
-  level: z.number().min(1).max(3),
   parentId: z.string().nullable().optional(),
   projectId: z.string(),
   isStandard: z.boolean().optional().default(false),
@@ -77,7 +76,6 @@ export async function POST(request: NextRequest) {
       data: {
         name: validated.name,
         code: validated.code || null,
-        level: validated.level,
         sortOrder: (maxSortOrder._max.sortOrder ?? 0) + 1,
         isStandard: validated.isStandard,
         projectId: validated.projectId,

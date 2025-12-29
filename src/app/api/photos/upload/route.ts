@@ -15,7 +15,9 @@ import {
   uploadToStorage,
   generatePhotoKey,
   getPublicUrl,
-} from '@/lib/storage';
+  initializeStorage,
+  isLocalStorageMode,
+} from '@/lib/storage-factory';
 import { UploadedPhoto, PhotoMetadata, UploadResult } from '@/types/photo';
 import { createPhotoFromUpload } from '@/services/photo.service';
 
@@ -25,6 +27,15 @@ export const runtime = 'nodejs';
 
 // Maximum number of files per request
 const MAX_FILES_PER_REQUEST = 20;
+
+// Initialize storage on first request (for local mode directory creation)
+let storageInitialized = false;
+async function ensureStorageInitialized() {
+  if (!storageInitialized) {
+    await initializeStorage();
+    storageInitialized = true;
+  }
+}
 
 /**
  * POST /api/photos/upload
@@ -39,6 +50,9 @@ const MAX_FILES_PER_REQUEST = 20;
  */
 export async function POST(request: NextRequest) {
   try {
+    // Ensure storage is initialized (creates directories for local mode)
+    await ensureStorageInitialized();
+
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
 

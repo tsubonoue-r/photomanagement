@@ -12,23 +12,24 @@ import type { UploadedPhoto, ExifData } from '@/types/photo';
  */
 export interface CreatePhotoInput {
   id: string;
-  title: string;
+  title?: string;
   description?: string;
-  url: string;
-  thumbnailUrl: string;
+  filePath: string;
+  thumbnailPath?: string;
   filename: string;
+  originalName: string;
   mimeType: string;
-  fileSize: number;
-  width: number;
-  height: number;
-  projectId?: string;
+  fileSize: number | bigint;
+  width?: number;
+  height?: number;
+  projectId: string;
   categoryId?: string;
-  uploadedBy: string;
+  createdById: string;
   exifData?: ExifData;
-  location?: string;
   takenAt?: Date;
   latitude?: number;
   longitude?: number;
+  cameraModel?: string;
 }
 
 /**
@@ -40,21 +41,22 @@ export async function createPhoto(input: CreatePhotoInput): Promise<PrismaPhoto>
       id: input.id,
       title: input.title,
       description: input.description,
-      url: input.url,
-      thumbnailUrl: input.thumbnailUrl,
+      filePath: input.filePath,
+      thumbnailPath: input.thumbnailPath,
       filename: input.filename,
+      originalName: input.originalName,
       mimeType: input.mimeType,
-      fileSize: input.fileSize,
+      fileSize: BigInt(input.fileSize),
       width: input.width,
       height: input.height,
       projectId: input.projectId,
       categoryId: input.categoryId,
-      uploadedBy: input.uploadedBy,
+      createdById: input.createdById,
       exifData: input.exifData ? JSON.parse(JSON.stringify(input.exifData)) : null,
-      location: input.location,
       takenAt: input.takenAt,
       latitude: input.latitude,
       longitude: input.longitude,
+      cameraModel: input.cameraModel,
     },
   });
 
@@ -76,24 +78,31 @@ export async function createPhotoFromUpload(
 ): Promise<PrismaPhoto> {
   const { metadata } = uploadedPhoto;
 
+  // projectId is required in the schema
+  if (!options.projectId) {
+    throw new Error('projectId is required to create a photo');
+  }
+
   return createPhoto({
     id: uploadedPhoto.id,
     title: options.title || metadata.originalName,
     description: options.description,
-    url: uploadedPhoto.originalUrl,
-    thumbnailUrl: uploadedPhoto.thumbnailSmallUrl,
+    filePath: uploadedPhoto.originalUrl,
+    thumbnailPath: uploadedPhoto.thumbnailSmallUrl,
     filename: metadata.originalName,
+    originalName: metadata.originalName,
     mimeType: metadata.mimeType,
     fileSize: metadata.size,
     width: metadata.width,
     height: metadata.height,
     projectId: options.projectId,
     categoryId: options.categoryId,
-    uploadedBy: options.uploadedBy,
+    createdById: options.uploadedBy,
     exifData: metadata.exif,
     takenAt: metadata.exif.dateTimeOriginal,
     latitude: metadata.exif.latitude,
     longitude: metadata.exif.longitude,
+    cameraModel: metadata.exif.model,
   });
 }
 
@@ -172,8 +181,7 @@ export async function updatePhoto(
     title: string;
     description: string;
     categoryId: string;
-    location: string;
-    blackboardData: Record<string, unknown>;
+    blackboardId: string;
   }>
 ): Promise<PrismaPhoto> {
   return prisma.photo.update({
@@ -262,7 +270,7 @@ export async function searchPhotos(options: {
       { title: { contains: query, mode: 'insensitive' as const } },
       { description: { contains: query, mode: 'insensitive' as const } },
       { filename: { contains: query, mode: 'insensitive' as const } },
-      { location: { contains: query, mode: 'insensitive' as const } },
+      { originalName: { contains: query, mode: 'insensitive' as const } },
     ],
   };
 

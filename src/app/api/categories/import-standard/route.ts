@@ -98,12 +98,11 @@ export async function POST(request: NextRequest) {
         parentId = codeToIdMap.get(category.parentCode) ?? null;
       }
 
-      // 同じレベル・同じ親の最大sortOrderを取得
+      // 同じ親の最大sortOrderを取得
       const maxSortOrder = await prisma.category.aggregate({
         where: {
           projectId,
           parentId,
-          level: category.level,
         },
         _max: { sortOrder: true },
       });
@@ -112,7 +111,6 @@ export async function POST(request: NextRequest) {
         data: {
           name: category.name,
           code: category.code,
-          level: category.level,
           sortOrder: (maxSortOrder._max.sortOrder ?? 0) + 1,
           isStandard: true,
           projectId,

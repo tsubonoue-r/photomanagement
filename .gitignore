@@ -78,6 +78,9 @@ web_modules/
 .next
 out
 
+# Local storage uploads (development)
+public/uploads/
+
 # Nuxt.js build / generate output
 .nuxt
 dist
