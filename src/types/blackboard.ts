@@ -121,3 +121,47 @@ export interface PaginatedResponse<T> {
   pageSize: number
   totalPages: number
 }
+
+/**
+ * Blackboard composition result
+ */
+export interface BlackboardComposition {
+  id: string
+  originalPhotoId: string
+  composedPhotoUrl: string
+  blackboardId: string
+  hash: string
+  timestamp: Date
+  metadata: {
+    originalWidth: number
+    originalHeight: number
+    blackboardPosition: { x: number; y: number }
+    blackboardScale: number
+  }
+}
+
+/**
+ * Tampering detection information
+ */
+export interface TamperingDetectionInfo {
+  photoId: string
+  hash: string
+  algorithm: 'sha256' | 'sha512'
+  timestamp: Date
+  verified: boolean
+}
+
+/**
+ * Input for creating a blackboard template
+ */
+export interface BlackboardTemplateCreateInput {
+  name: string
+  description?: string
+  width: number
+  height: number
+  backgroundColor: string
+  borderColor: string
+  borderWidth: number
+  fields: Omit<BlackboardField, 'id'>[]
+  isDefault?: boolean
+}

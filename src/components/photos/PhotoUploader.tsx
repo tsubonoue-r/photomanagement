@@ -192,7 +192,7 @@ function ProgressItem({ item, onCancel }: ProgressItemProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
-            {item.fileName}
+            {item.filename}
           </p>
           {item.status === 'uploading' && (
             <span className="text-xs text-gray-500 ml-2">{item.progress}%</span>

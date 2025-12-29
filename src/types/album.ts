@@ -105,6 +105,7 @@ export interface CreateAlbumInput {
 // API request for creating album (used by frontend)
 export interface CreateAlbumRequest {
   projectId: string;
+  name?: string;
   title: string;
   description?: string;
   cover?: Partial<AlbumCover>;

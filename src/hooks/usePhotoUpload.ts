@@ -181,7 +181,7 @@ export function usePhotoUpload(
         if (validationError) {
           initialProgress.push({
             fileId,
-            fileName: file.name,
+            filename: file.name,
             progress: 0,
             status: 'error',
             error: validationError,
@@ -190,7 +190,7 @@ export function usePhotoUpload(
           validFiles.push({ file, fileId });
           initialProgress.push({
             fileId,
-            fileName: file.name,
+            filename: file.name,
             progress: 0,
             status: 'pending',
           });

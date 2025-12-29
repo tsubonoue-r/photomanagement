@@ -77,8 +77,8 @@ function parseFilters(searchParams: URLSearchParams): PhotoFilters {
 
 function parseSort(searchParams: URLSearchParams): PhotoSort {
   return {
-    field: (searchParams.get('sortField') || 'date') as PhotoSort['field'],
-    order: (searchParams.get('sortOrder') || 'desc') as PhotoSort['order'],
+    field: (searchParams.get('sortField') || 'takenAt') as PhotoSort['field'],
+    direction: (searchParams.get('sortOrder') || 'desc') as PhotoSort['direction'],
   };
 }
 
@@ -128,23 +128,23 @@ function applySort(photos: Photo[], sort: PhotoSort): Photo[] {
     let comparison = 0;
 
     switch (sort.field) {
-      case 'date':
+      case 'takenAt':
         const dateA = a.takenAt ? new Date(a.takenAt).getTime() : 0;
         const dateB = b.takenAt ? new Date(b.takenAt).getTime() : 0;
         comparison = dateA - dateB;
         break;
-      case 'name':
+      case 'filename':
         comparison = a.filename.localeCompare(b.filename);
         break;
-      case 'createdAt':
+      case 'uploadedAt':
         comparison = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
         break;
-      case 'updatedAt':
-        comparison = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
+      case 'size':
+        comparison = a.size - b.size;
         break;
     }
 
-    return sort.order === 'asc' ? comparison : -comparison;
+    return sort.direction === 'asc' ? comparison : -comparison;
   });
 }
 
@@ -226,8 +226,6 @@ export async function POST(request: NextRequest) {
 
     const response: BulkActionResponse = {
       success: true,
-      processed: photoIds.length,
-      failed: 0,
       affectedCount: photoIds.length,
       errors: [],
     };

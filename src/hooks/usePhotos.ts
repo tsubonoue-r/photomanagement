@@ -43,7 +43,7 @@ export function usePhotos(options: UsePhotosOptions = {}): UsePhotosReturn {
   const {
     projectId,
     initialFilters = {},
-    initialSort = { field: 'date', order: 'desc' },
+    initialSort = { field: 'takenAt', direction: 'desc' },
     initialLimit = 20,
     autoFetch = true,
   } = options;
@@ -64,7 +64,7 @@ export function usePhotos(options: UsePhotosOptions = {}): UsePhotosReturn {
     params.set('page', String(currentPage));
     params.set('limit', String(initialLimit));
     params.set('sortField', sort.field);
-    params.set('sortOrder', sort.order);
+    params.set('sortOrder', sort.direction);
 
     if (filters.workType) {
       params.set(
@@ -189,8 +189,7 @@ export function usePhotos(options: UsePhotosOptions = {}): UsePhotosReturn {
       console.error('Bulk action error:', err);
       return {
         success: false,
-        processed: 0,
-        failed: action.photoIds.length,
+        affectedCount: 0,
         errors: action.photoIds.map((id) => ({
           photoId: id,
           error: message,

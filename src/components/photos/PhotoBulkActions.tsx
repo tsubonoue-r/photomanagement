@@ -50,7 +50,7 @@ export const PhotoBulkActions = memo<PhotoBulkActionsProps>(function PhotoBulkAc
 
         if (!result.success && result.errors && result.errors.length > 0) {
           console.error('Bulk action errors:', result.errors);
-          alert(`一部の写真で処理に失敗しました: ${result.failed}件`);
+          alert(`一部の写真で処理に失敗しました: ${result.errors.length}件`);
         }
       } catch (error) {
         console.error('Bulk action error:', error);

@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAlbumById, updateAlbum, deleteAlbum } from '@/lib/album/album-service';
+import { getAlbum, updateAlbum, deleteAlbum } from '@/lib/album/album-service';
 import type { UpdateAlbumInput, AlbumApiResponse, Album } from '@/types/album';
 
 interface RouteParams {
@@ -23,7 +23,7 @@ export async function GET(
 ): Promise<NextResponse<AlbumApiResponse<Album>>> {
   try {
     const { id } = await params;
-    const album = await getAlbumById(id);
+    const album = await getAlbum(id);
 
     if (!album) {
       return NextResponse.json(

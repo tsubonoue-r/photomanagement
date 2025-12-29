@@ -1,7 +1,10 @@
 'use client';
 
 import { memo, useCallback } from 'react';
-import type { PhotoSort, SortField, SortOrder } from '@/types/photo';
+import type { PhotoSort } from '@/types/photo';
+
+type SortField = PhotoSort['field'];
+type SortDirection = PhotoSort['direction'];
 
 interface PhotoSorterProps {
   sort: PhotoSort;
@@ -9,10 +12,10 @@ interface PhotoSorterProps {
 }
 
 const SORT_OPTIONS: { field: SortField; label: string }[] = [
-  { field: 'date', label: '撮影日' },
-  { field: 'name', label: 'ファイル名' },
-  { field: 'createdAt', label: 'アップロード日' },
-  { field: 'updatedAt', label: '更新日' },
+  { field: 'takenAt', label: '撮影日' },
+  { field: 'filename', label: 'ファイル名' },
+  { field: 'uploadedAt', label: 'アップロード日' },
+  { field: 'size', label: 'サイズ' },
 ];
 
 export const PhotoSorter = memo<PhotoSorterProps>(function PhotoSorter({
@@ -32,7 +35,7 @@ export const PhotoSorter = memo<PhotoSorterProps>(function PhotoSorter({
   const handleOrderToggle = useCallback(() => {
     onSortChange({
       ...sort,
-      order: sort.order === 'asc' ? 'desc' : 'asc',
+      direction: sort.direction === 'asc' ? 'desc' : 'asc',
     });
   }, [sort, onSortChange]);
 
@@ -58,9 +61,9 @@ export const PhotoSorter = memo<PhotoSorterProps>(function PhotoSorter({
           text-sm transition-colors hover:bg-zinc-50 focus:border-blue-500 focus:outline-none
           focus:ring-1 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white
           dark:hover:bg-zinc-600"
-        aria-label={sort.order === 'asc' ? 'Sort descending' : 'Sort ascending'}
+        aria-label={sort.direction === 'asc' ? 'Sort descending' : 'Sort ascending'}
       >
-        {sort.order === 'asc' ? (
+        {sort.direction === 'asc' ? (
           <>
             <svg
               className="h-4 w-4"
