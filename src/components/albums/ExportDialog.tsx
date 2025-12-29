@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Album, ExportOptions, ExportFormat, PaperSize, PhotoLayout } from '@/types/album';
+import { Album, ExportOptions, PaperSize, PhotoLayout } from '@/types/album';
 
 interface ExportDialogProps {
   album: Album;
@@ -101,7 +101,7 @@ export function ExportDialog({
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Export Format
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <button
                   onClick={() => updateOption('format', 'pdf')}
                   className={`p-4 rounded-lg border-2 transition-all ${
@@ -110,9 +110,9 @@ export function ExportDialog({
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="text-3xl mb-2">📄</div>
+                  <div className="text-3xl mb-2">PDF</div>
                   <div className="font-medium text-gray-900">PDF</div>
-                  <div className="text-sm text-gray-500">Photo album format</div>
+                  <div className="text-sm text-gray-500">Photo album</div>
                 </button>
                 <button
                   onClick={() => updateOption('format', 'excel')}
@@ -122,9 +122,21 @@ export function ExportDialog({
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="text-3xl mb-2">📊</div>
+                  <div className="text-3xl mb-2">XLS</div>
                   <div className="font-medium text-gray-900">Excel</div>
-                  <div className="text-sm text-gray-500">Data report format</div>
+                  <div className="text-sm text-gray-500">Data report</div>
+                </button>
+                <button
+                  onClick={() => updateOption('format', 'zip')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    options.format === 'zip'
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-3xl mb-2">ZIP</div>
+                  <div className="font-medium text-gray-900">ZIP</div>
+                  <div className="text-sm text-gray-500">Bulk download</div>
                 </button>
               </div>
             </div>

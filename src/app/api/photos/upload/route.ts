@@ -1,6 +1,7 @@
 /**
  * Photo Upload API Endpoint
  * Handles single and multiple file uploads with thumbnail generation
+ * Supports optional database persistence
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -16,6 +17,7 @@ import {
   getPublicUrl,
 } from '@/lib/storage';
 import { UploadedPhoto, PhotoMetadata, UploadResult } from '@/types/photo';
+import { createPhotoFromUpload } from '@/services/photo.service';
 
 // Route segment config for Next.js App Router
 export const dynamic = 'force-dynamic';
@@ -27,11 +29,24 @@ const MAX_FILES_PER_REQUEST = 20;
 /**
  * POST /api/photos/upload
  * Upload one or more photos
+ *
+ * Form Data:
+ * - files: File[] - Required. Image files to upload
+ * - projectId: string - Optional. Project ID to associate photos with
+ * - categoryId: string - Optional. Category ID to assign to photos
+ * - saveToDb: string - Optional. "true" to save to database (requires uploadedBy)
+ * - uploadedBy: string - Required if saveToDb is true. User ID of uploader
  */
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
+
+    // Optional metadata fields
+    const projectId = formData.get('projectId') as string | null;
+    const categoryId = formData.get('categoryId') as string | null;
+    const saveToDb = formData.get('saveToDb') === 'true';
+    const uploadedBy = formData.get('uploadedBy') as string | null;
 
     if (!files || files.length === 0) {
       return NextResponse.json(
@@ -47,10 +62,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate required fields for DB save
+    if (saveToDb && !uploadedBy) {
+      return NextResponse.json(
+        { error: 'uploadedBy is required when saveToDb is true' },
+        { status: 400 }
+      );
+    }
+
     const results: UploadResult[] = [];
 
     for (const file of files) {
       const result = await processAndUploadFile(file);
+
+      // Save to database if requested and upload was successful
+      if (result.success && result.photo && saveToDb && uploadedBy) {
+        try {
+          await createPhotoFromUpload(result.photo, {
+            projectId: projectId || undefined,
+            categoryId: categoryId || undefined,
+            uploadedBy,
+          });
+        } catch (dbError) {
+          console.error('Database save error:', dbError);
+          // Continue with response but note the DB error
+          result.error = 'Uploaded but failed to save to database';
+        }
+      }
+
       results.push(result);
     }
 

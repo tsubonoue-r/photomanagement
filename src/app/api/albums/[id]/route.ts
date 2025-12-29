@@ -13,7 +13,7 @@ import {
   getAlbum,
   updateAlbum,
   deleteAlbum,
-  addPhotosToAlbum,
+  addPhotoIdsToAlbum,
   removePhotosFromAlbum,
   reorderPhotos,
 } from '@/lib/album/album-service';
@@ -115,13 +115,13 @@ export async function PATCH(
 
     switch (action) {
       case 'addPhotos':
-        if (!body.photos || !Array.isArray(body.photos)) {
+        if (!body.photoIds || !Array.isArray(body.photoIds)) {
           return NextResponse.json(
-            { error: 'Photos array is required' },
+            { error: 'Photo IDs array is required' },
             { status: 400 }
           );
         }
-        album = await addPhotosToAlbum(id, body.photos);
+        album = await addPhotoIdsToAlbum(id, body.photoIds);
         break;
 
       case 'removePhotos':

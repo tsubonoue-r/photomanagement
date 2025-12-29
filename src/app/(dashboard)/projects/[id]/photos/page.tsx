@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, useCallback, useEffect, use } from 'react';
+import { useState, useCallback, use } from 'react';
 import Link from 'next/link';
-import { usePhotos, usePhotoSearch } from '@/hooks/usePhotos';
+import { useInfinitePhotos, useInfinitePhotoSearch } from '@/hooks/useInfinitePhotos';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import {
   PhotoGrid,
+  SortablePhotoGrid,
   PhotoLightbox,
   PhotoFilters,
   PhotoSorter,
   PhotoBulkActions,
+  KeyboardShortcutsButton,
 } from '@/components/photos';
 import type { Photo } from '@/types/photo';
 
@@ -23,29 +26,43 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
   const resolvedParams = use(params);
   const projectId = resolvedParams.id;
 
-  // Photo list state
+  // Photo list state with infinite loading
   const {
     photos,
     isLoading,
+    isLoadingMore,
     error,
-    pagination,
+    hasMore,
+    totalCount,
     filters,
     sort,
     selectedIds,
-    fetchPhotos,
+    focusedIndex,
+    fetchMore,
     setFilters,
     setSort,
+    setFocusedIndex,
     togglePhotoSelection,
     selectAll,
     deselectAll,
     bulkAction,
-  } = usePhotos({
+    reorderPhotos,
+    refresh,
+  } = useInfinitePhotos({
     projectId,
     autoFetch: true,
   });
 
-  // Search state
-  const { query, setQuery, results, isSearching } = usePhotoSearch({
+  // Search state with infinite loading
+  const {
+    query,
+    setQuery,
+    results,
+    isSearching,
+    isLoadingMore: isSearchLoadingMore,
+    hasMore: searchHasMore,
+    searchMore,
+  } = useInfinitePhotoSearch({
     projectId,
   });
 
@@ -55,23 +72,30 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
   // View mode state
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [gridColumns, setGridColumns] = useState<2 | 3 | 4 | 5 | 6>(4);
+  const [enableReorder, setEnableReorder] = useState(false);
 
-  // Infinite scroll
-  const { sentinelRef, isLoadingMore, hasMore, setHasMore } = useInfiniteScroll(
+  // Keyboard shortcuts help modal
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+
+  // Determine which photos to display
+  const isSearchMode = query.length >= 2;
+  const displayPhotos = isSearchMode ? results.map((r) => r.photo) : photos;
+  const displayHasMore = isSearchMode ? searchHasMore : hasMore;
+  const displayIsLoadingMore = isSearchMode ? isSearchLoadingMore : isLoadingMore;
+
+  // Infinite scroll integration
+  const { sentinelRef } = useInfiniteScroll(
     async () => {
-      if (pagination && pagination.hasNextPage) {
-        await fetchPhotos(pagination.page + 1);
+      if (isSearchMode) {
+        await searchMore();
+      } else {
+        await fetchMore();
       }
     },
-    { enabled: !isLoading && !!pagination?.hasNextPage }
-  );
-
-  // Update hasMore when pagination changes
-  useEffect(() => {
-    if (pagination) {
-      setHasMore(pagination.hasNextPage);
+    {
+      enabled: !isLoading && !isSearching && displayHasMore,
     }
-  }, [pagination, setHasMore]);
+  );
 
   // Handle photo click for lightbox
   const handlePhotoClick = useCallback((photo: Photo) => {
@@ -96,8 +120,107 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
     [setQuery]
   );
 
-  // Determine which photos to display
-  const displayPhotos = query.length >= 2 ? results.map((r) => r.photo) : photos;
+  // Handle photo reorder (drag and drop)
+  const handleReorder = useCallback(
+    (newPhotos: Photo[]) => {
+      reorderPhotos(newPhotos);
+      // TODO: API call to persist reorder
+    },
+    [reorderPhotos]
+  );
+
+  // Keyboard shortcuts
+  const shortcuts = [
+    {
+      key: '?',
+      handler: () => setShowShortcutsHelp(true),
+      description: 'Show shortcuts help',
+    },
+    {
+      key: 'Escape',
+      handler: () => {
+        if (lightboxPhoto) {
+          handleLightboxClose();
+        } else if (showShortcutsHelp) {
+          setShowShortcutsHelp(false);
+        } else {
+          deselectAll();
+        }
+      },
+      description: 'Close modal or deselect all',
+    },
+    {
+      key: 'ArrowLeft',
+      handler: () => {
+        if (!lightboxPhoto) {
+          setFocusedIndex(Math.max(0, focusedIndex - 1));
+        }
+      },
+      description: 'Move focus left',
+      enabled: !lightboxPhoto,
+    },
+    {
+      key: 'ArrowRight',
+      handler: () => {
+        if (!lightboxPhoto) {
+          setFocusedIndex(Math.min(displayPhotos.length - 1, focusedIndex + 1));
+        }
+      },
+      description: 'Move focus right',
+      enabled: !lightboxPhoto,
+    },
+    {
+      key: 'ArrowUp',
+      handler: () => {
+        if (!lightboxPhoto) {
+          setFocusedIndex(Math.max(0, focusedIndex - gridColumns));
+        }
+      },
+      description: 'Move focus up',
+      enabled: !lightboxPhoto,
+    },
+    {
+      key: 'ArrowDown',
+      handler: () => {
+        if (!lightboxPhoto) {
+          setFocusedIndex(Math.min(displayPhotos.length - 1, focusedIndex + gridColumns));
+        }
+      },
+      description: 'Move focus down',
+      enabled: !lightboxPhoto,
+    },
+    {
+      key: ' ',
+      handler: () => {
+        if (!lightboxPhoto && displayPhotos[focusedIndex]) {
+          togglePhotoSelection(displayPhotos[focusedIndex].id);
+        }
+      },
+      description: 'Toggle selection',
+      enabled: !lightboxPhoto,
+    },
+    {
+      key: 'Enter',
+      handler: () => {
+        if (!lightboxPhoto && displayPhotos[focusedIndex]) {
+          setLightboxPhoto(displayPhotos[focusedIndex]);
+        }
+      },
+      description: 'Open in lightbox',
+      enabled: !lightboxPhoto,
+    },
+    {
+      key: 'a',
+      ctrl: true,
+      handler: selectAll,
+      description: 'Select all',
+    },
+  ];
+
+  useKeyboardShortcuts(shortcuts, {
+    enabled: true,
+    ignoreInputs: true,
+  });
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -128,14 +251,43 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
               <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
                 写真一覧
               </h1>
-              {pagination && (
+              {totalCount > 0 && (
                 <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {pagination.total}枚
+                  {totalCount}枚
                 </span>
               )}
             </div>
 
             <div className="flex items-center gap-4">
+              {/* Keyboard shortcuts button */}
+              <KeyboardShortcutsButton />
+
+              {/* Reorder toggle */}
+              <button
+                onClick={() => setEnableReorder(!enableReorder)}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors
+                  ${enableReorder
+                    ? 'border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                    : 'border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700'
+                  }`}
+                aria-pressed={enableReorder}
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 8h16M4 16h16"
+                  />
+                </svg>
+                並べ替え
+              </button>
+
               {/* View mode toggle */}
               <div className="flex rounded-lg border border-zinc-300 dark:border-zinc-600">
                 <button
@@ -254,7 +406,7 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
               selectedIds={selectedIds}
               onSelectAll={selectAll}
               onDeselectAll={deselectAll}
-              totalCount={pagination?.total ?? photos.length}
+              totalCount={totalCount}
             />
           </div>
         )}
@@ -265,7 +417,7 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
             <p className="font-medium">エラーが発生しました</p>
             <p className="mt-1 text-sm">{error}</p>
             <button
-              onClick={() => fetchPhotos()}
+              onClick={() => refresh()}
               className="mt-2 text-sm underline hover:no-underline"
             >
               再試行
@@ -281,32 +433,44 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
           </div>
         )}
 
-        {/* Photo grid */}
-        <PhotoGrid
-          photos={displayPhotos}
-          selectedIds={selectedIds}
-          onPhotoClick={handlePhotoClick}
-          onPhotoSelect={togglePhotoSelection}
-          isLoading={isLoading || isSearching}
-          columns={gridColumns}
-        />
+        {/* Photo grid - use SortablePhotoGrid when reorder is enabled */}
+        {enableReorder && !isSearchMode ? (
+          <SortablePhotoGrid
+            photos={displayPhotos}
+            selectedIds={selectedIds}
+            onPhotoClick={handlePhotoClick}
+            onPhotoSelect={togglePhotoSelection}
+            onReorder={handleReorder}
+            isLoading={isLoading || isSearching}
+            columns={gridColumns}
+          />
+        ) : (
+          <PhotoGrid
+            photos={displayPhotos}
+            selectedIds={selectedIds}
+            onPhotoClick={handlePhotoClick}
+            onPhotoSelect={togglePhotoSelection}
+            isLoading={isLoading || isSearching}
+            columns={gridColumns}
+          />
+        )}
 
         {/* Infinite scroll sentinel */}
-        {hasMore && (
+        {displayHasMore && (
           <div
             ref={sentinelRef}
             className="flex h-20 items-center justify-center"
           >
-            {isLoadingMore && (
+            {displayIsLoadingMore && (
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-blue-500 dark:border-zinc-700" />
             )}
           </div>
         )}
 
-        {/* Pagination info */}
-        {pagination && !hasMore && photos.length > 0 && (
+        {/* End of list message */}
+        {!displayHasMore && displayPhotos.length > 0 && (
           <div className="mt-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
-            全{pagination.total}件の写真を表示しました
+            全{isSearchMode ? results.length : totalCount}件の写真を表示しました
           </div>
         )}
       </main>
