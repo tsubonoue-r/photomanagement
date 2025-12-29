@@ -1,18 +1,18 @@
 'use client';
 
 import { memo, useCallback } from 'react';
-import type { PhotoSort } from '@/types/photo';
+import type { PhotoSort, SortField, SortOrder } from '@/types/photo';
 
 interface PhotoSorterProps {
   sort: PhotoSort;
   onSortChange: (sort: PhotoSort) => void;
 }
 
-const SORT_OPTIONS: { field: PhotoSort['field']; label: string }[] = [
-  { field: 'takenAt', label: '撮影日' },
-  { field: 'uploadedAt', label: 'アップロード日' },
-  { field: 'filename', label: 'ファイル名' },
-  { field: 'size', label: 'ファイルサイズ' },
+const SORT_OPTIONS: { field: SortField; label: string }[] = [
+  { field: 'date', label: '撮影日' },
+  { field: 'name', label: 'ファイル名' },
+  { field: 'createdAt', label: 'アップロード日' },
+  { field: 'updatedAt', label: '更新日' },
 ];
 
 export const PhotoSorter = memo<PhotoSorterProps>(function PhotoSorter({
@@ -23,28 +23,26 @@ export const PhotoSorter = memo<PhotoSorterProps>(function PhotoSorter({
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       onSortChange({
         ...sort,
-        field: e.target.value as PhotoSort['field'],
+        field: e.target.value as SortField,
       });
     },
     [sort, onSortChange]
   );
 
-  const handleDirectionToggle = useCallback(() => {
+  const handleOrderToggle = useCallback(() => {
     onSortChange({
       ...sort,
-      direction: sort.direction === 'asc' ? 'desc' : 'asc',
+      order: sort.order === 'asc' ? 'desc' : 'asc',
     });
   }, [sort, onSortChange]);
 
   return (
     <div className="flex items-center gap-2">
-      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        並び替え:
-      </label>
+      <label className="text-sm text-zinc-600 dark:text-zinc-400">並び替え:</label>
       <select
         value={sort.field}
         onChange={handleFieldChange}
-        className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm
+        className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm
           focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
           dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
       >
@@ -55,13 +53,14 @@ export const PhotoSorter = memo<PhotoSorterProps>(function PhotoSorter({
         ))}
       </select>
       <button
-        onClick={handleDirectionToggle}
-        className="flex items-center gap-1 rounded-lg border border-zinc-300 px-3 py-2
-          text-sm text-zinc-700 transition-colors hover:bg-zinc-50
-          dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-700"
-        aria-label={sort.direction === 'asc' ? '昇順' : '降順'}
+        onClick={handleOrderToggle}
+        className="flex items-center gap-1 rounded-lg border border-zinc-300 bg-white px-3 py-1.5
+          text-sm transition-colors hover:bg-zinc-50 focus:border-blue-500 focus:outline-none
+          focus:ring-1 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white
+          dark:hover:bg-zinc-600"
+        aria-label={sort.order === 'asc' ? 'Sort descending' : 'Sort ascending'}
       >
-        {sort.direction === 'asc' ? (
+        {sort.order === 'asc' ? (
           <>
             <svg
               className="h-4 w-4"

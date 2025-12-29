@@ -7,14 +7,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import type {
   Photo,
   PhotoFilters,
-  PhotoSort,
   PaginatedResponse,
   SearchResult,
   WorkType,
   PhotoCategory,
 } from '@/types/photo';
 
-// Mock data for development (same as in photos route)
+// Mock data for development
 const mockPhotos: Photo[] = Array.from({ length: 50 }, (_, i) => ({
   id: `photo-${String(i + 1).padStart(8, '0')}-0000-0000-000000000000`,
   projectId: `project-${Math.floor(i / 10) + 1}`,
@@ -30,19 +29,19 @@ const mockPhotos: Photo[] = Array.from({ length: 50 }, (_, i) => ({
   workType: (['foundation', 'framing', 'roofing', 'exterior', 'interior', 'electrical', 'plumbing', 'finishing', 'inspection', 'other'] as WorkType[])[i % 10],
   category: (['before', 'during', 'after', 'material', 'equipment', 'defect', 'other'] as PhotoCategory[])[i % 7],
   description: [
-    '基礎工事の進捗写真',
-    '鉄骨組み立て作業中',
-    '屋根防水シート施工',
-    '外壁サイディング取付',
-    '内装クロス張り作業',
-    '電気配線工事',
-    '給排水配管設置',
-    '仕上げ確認写真',
-    '中間検査立会い',
-    '現場全景写真',
+    'Foundation work progress',
+    'Steel frame assembly',
+    'Roof waterproofing',
+    'Exterior siding',
+    'Interior finishing',
+    'Electrical wiring',
+    'Plumbing installation',
+    'Final inspection',
+    'Site overview',
+    'Material delivery',
   ][i % 10],
-  location: `現場${Math.floor(i / 5) + 1}`,
-  tags: [`工事写真`, `施工記録`, `tag${i % 3 + 1}`],
+  location: `Site ${Math.floor(i / 5) + 1}`,
+  tags: ['construction', 'progress', `tag${i % 3 + 1}`],
   exif: {
     make: 'Canon',
     model: 'EOS R5',
@@ -79,13 +78,6 @@ function parseFilters(searchParams: URLSearchParams): PhotoFilters {
   if (tags) filters.tags = tags.split(',');
 
   return filters;
-}
-
-function parseSort(searchParams: URLSearchParams): PhotoSort {
-  return {
-    field: (searchParams.get('sortField') || 'takenAt') as PhotoSort['field'],
-    direction: (searchParams.get('sortOrder') || 'desc') as PhotoSort['direction'],
-  };
 }
 
 function applyFilters(photos: Photo[], filters: PhotoFilters): Photo[] {
@@ -135,35 +127,12 @@ function calculateRelevanceScore(photo: Photo, query: string): number {
   const terms = lowerQuery.split(/\s+/).filter(Boolean);
 
   for (const term of terms) {
-    // Filename match (high weight)
-    if (photo.filename.toLowerCase().includes(term)) {
-      score += 10;
-    }
-
-    // Description match (high weight)
-    if (photo.description?.toLowerCase().includes(term)) {
-      score += 15;
-    }
-
-    // Location match (medium weight)
-    if (photo.location?.toLowerCase().includes(term)) {
-      score += 8;
-    }
-
-    // Tags match (medium weight)
-    if (photo.tags.some((tag) => tag.toLowerCase().includes(term))) {
-      score += 5;
-    }
-
-    // Work type match (low weight)
-    if (photo.workType?.toLowerCase().includes(term)) {
-      score += 3;
-    }
-
-    // Category match (low weight)
-    if (photo.category?.toLowerCase().includes(term)) {
-      score += 3;
-    }
+    if (photo.filename.toLowerCase().includes(term)) score += 10;
+    if (photo.description?.toLowerCase().includes(term)) score += 15;
+    if (photo.location?.toLowerCase().includes(term)) score += 8;
+    if (photo.tags.some((tag) => tag.toLowerCase().includes(term))) score += 5;
+    if (photo.workType?.toLowerCase().includes(term)) score += 3;
+    if (photo.category?.toLowerCase().includes(term)) score += 3;
   }
 
   return score;
@@ -177,23 +146,13 @@ function generateHighlights(
   const lowerQuery = query.toLowerCase();
   const terms = lowerQuery.split(/\s+/).filter(Boolean);
 
-  const createHighlightedSnippet = (text: string, maxLength: number = 100): string => {
+  const createHighlightedSnippet = (text: string): string => {
     let result = text;
     for (const term of terms) {
       const regex = new RegExp(`(${term})`, 'gi');
       result = result.replace(regex, '<mark>$1</mark>');
     }
-    if (result.length > maxLength) {
-      const firstMatch = result.indexOf('<mark>');
-      if (firstMatch > 0) {
-        const start = Math.max(0, firstMatch - 30);
-        const end = Math.min(result.length, firstMatch + maxLength - 30);
-        result = (start > 0 ? '...' : '') + result.slice(start, end) + (end < result.length ? '...' : '');
-      } else {
-        result = result.slice(0, maxLength) + '...';
-      }
-    }
-    return result;
+    return result.length > 100 ? result.slice(0, 100) + '...' : result;
   };
 
   if (photo.description && terms.some((term) => photo.description!.toLowerCase().includes(term))) {
@@ -202,21 +161,18 @@ function generateHighlights(
       matches: [createHighlightedSnippet(photo.description)],
     });
   }
-
   if (photo.filename && terms.some((term) => photo.filename.toLowerCase().includes(term))) {
     highlights.push({
       field: 'filename',
       matches: [createHighlightedSnippet(photo.filename)],
     });
   }
-
   if (photo.location && terms.some((term) => photo.location!.toLowerCase().includes(term))) {
     highlights.push({
       field: 'location',
       matches: [createHighlightedSnippet(photo.location)],
     });
   }
-
   const matchingTags = photo.tags.filter((tag) =>
     terms.some((term) => tag.toLowerCase().includes(term))
   );
@@ -238,50 +194,22 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    // Parse search query
     const query = searchParams.get('q') || '';
     const projectId = searchParams.get('projectId');
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
     const filters = parseFilters(searchParams);
-    const sort = parseSort(searchParams);
 
-    // Filter by project if specified
     let filteredPhotos = projectId
       ? mockPhotos.filter((p) => p.projectId === projectId)
       : mockPhotos;
 
-    // Apply filters
     filteredPhotos = applyFilters(filteredPhotos, filters);
 
-    // If query is empty, return all filtered photos
     if (!query.trim()) {
       const total = filteredPhotos.length;
       const totalPages = Math.ceil(total / limit);
       const offset = (page - 1) * limit;
-
-      // Apply sorting
-      filteredPhotos.sort((a, b) => {
-        let comparison = 0;
-        switch (sort.field) {
-          case 'takenAt':
-            const dateA = a.takenAt ? new Date(a.takenAt).getTime() : 0;
-            const dateB = b.takenAt ? new Date(b.takenAt).getTime() : 0;
-            comparison = dateA - dateB;
-            break;
-          case 'filename':
-            comparison = a.filename.localeCompare(b.filename);
-            break;
-          case 'uploadedAt':
-            comparison = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
-            break;
-          case 'size':
-            comparison = a.size - b.size;
-            break;
-        }
-        return sort.direction === 'asc' ? comparison : -comparison;
-      });
-
       const paginatedPhotos = filteredPhotos.slice(offset, offset + limit);
 
       const response: PaginatedResponse<SearchResult> = {
@@ -299,11 +227,9 @@ export async function GET(request: NextRequest) {
           hasPreviousPage: page > 1,
         },
       };
-
       return NextResponse.json(response);
     }
 
-    // Calculate relevance scores and filter by minimum score
     const searchResults: SearchResult[] = filteredPhotos
       .map((photo) => ({
         photo,
@@ -313,7 +239,6 @@ export async function GET(request: NextRequest) {
       .filter((result) => result.score > 0)
       .sort((a, b) => b.score - a.score);
 
-    // Calculate pagination
     const total = searchResults.length;
     const totalPages = Math.ceil(total / limit);
     const offset = (page - 1) * limit;

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     if (!projectId) return NextResponse.json({ error: "projectId is required" }, { status: 400 });
 
-    const where: Parameters<typeof prisma.category.findMany>[0]["where"] = { projectId };
+    const where: { projectId: string; parentId?: string | null } = { projectId };
     if (parentId !== null) where.parentId = parentId === "null" ? null : parentId;
 
     if (includeChildren) {

@@ -77,14 +77,13 @@ function parseFilters(searchParams: URLSearchParams): PhotoFilters {
 
 function parseSort(searchParams: URLSearchParams): PhotoSort {
   return {
-    field: (searchParams.get('sortField') || 'takenAt') as PhotoSort['field'],
-    direction: (searchParams.get('sortOrder') || 'desc') as PhotoSort['direction'],
+    field: (searchParams.get('sortField') || 'date') as PhotoSort['field'],
+    order: (searchParams.get('sortOrder') || 'desc') as PhotoSort['order'],
   };
 }
 
 function applyFilters(photos: Photo[], filters: PhotoFilters): Photo[] {
   return photos.filter((photo) => {
-    // Work type filter
     if (filters.workType) {
       const workTypes = Array.isArray(filters.workType)
         ? filters.workType
@@ -94,7 +93,6 @@ function applyFilters(photos: Photo[], filters: PhotoFilters): Photo[] {
       }
     }
 
-    // Category filter
     if (filters.category) {
       const categories = Array.isArray(filters.category)
         ? filters.category
@@ -104,7 +102,6 @@ function applyFilters(photos: Photo[], filters: PhotoFilters): Photo[] {
       }
     }
 
-    // Date range filter
     if (filters.dateFrom && photo.takenAt) {
       if (new Date(photo.takenAt) < new Date(filters.dateFrom)) {
         return false;
@@ -116,7 +113,6 @@ function applyFilters(photos: Photo[], filters: PhotoFilters): Photo[] {
       }
     }
 
-    // Tags filter
     if (filters.tags && filters.tags.length > 0) {
       if (!filters.tags.some((tag) => photo.tags.includes(tag))) {
         return false;
@@ -132,23 +128,23 @@ function applySort(photos: Photo[], sort: PhotoSort): Photo[] {
     let comparison = 0;
 
     switch (sort.field) {
-      case 'takenAt':
+      case 'date':
         const dateA = a.takenAt ? new Date(a.takenAt).getTime() : 0;
         const dateB = b.takenAt ? new Date(b.takenAt).getTime() : 0;
         comparison = dateA - dateB;
         break;
-      case 'filename':
+      case 'name':
         comparison = a.filename.localeCompare(b.filename);
         break;
-      case 'uploadedAt':
+      case 'createdAt':
         comparison = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
         break;
-      case 'size':
-        comparison = a.size - b.size;
+      case 'updatedAt':
+        comparison = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
         break;
     }
 
-    return sort.direction === 'asc' ? comparison : -comparison;
+    return sort.order === 'asc' ? comparison : -comparison;
   });
 }
 
@@ -160,25 +156,19 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    // Parse parameters
     const projectId = searchParams.get('projectId');
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
     const filters = parseFilters(searchParams);
     const sort = parseSort(searchParams);
 
-    // Filter by project if specified
     let filteredPhotos = projectId
       ? mockPhotos.filter((p) => p.projectId === projectId)
       : mockPhotos;
 
-    // Apply filters
     filteredPhotos = applyFilters(filteredPhotos, filters);
-
-    // Apply sorting
     filteredPhotos = applySort(filteredPhotos, sort);
 
-    // Calculate pagination
     const total = filteredPhotos.length;
     const totalPages = Math.ceil(total / limit);
     const offset = (page - 1) * limit;
@@ -234,9 +224,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mock bulk action processing
     const response: BulkActionResponse = {
       success: true,
+      processed: photoIds.length,
+      failed: 0,
       affectedCount: photoIds.length,
       errors: [],
     };

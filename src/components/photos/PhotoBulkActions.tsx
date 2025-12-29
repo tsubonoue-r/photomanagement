@@ -1,7 +1,13 @@
 'use client';
 
-import { memo, useState, useCallback } from 'react';
-import type { BulkActionRequest, BulkActionResponse, BulkActionType, WorkType, PhotoCategory } from '@/types/photo';
+import { memo, useCallback, useState } from 'react';
+import type {
+  BulkActionType,
+  BulkActionRequest,
+  BulkActionResponse,
+  WorkType,
+  PhotoCategory,
+} from '@/types/photo';
 import { WORK_TYPE_LABELS, PHOTO_CATEGORY_LABELS } from '@/types/photo';
 
 interface PhotoBulkActionsProps {
@@ -13,6 +19,8 @@ interface PhotoBulkActionsProps {
   totalCount: number;
 }
 
+type ModalType = 'delete' | 'move' | 'workType' | 'category' | 'tags' | null;
+
 export const PhotoBulkActions = memo<PhotoBulkActionsProps>(function PhotoBulkActions({
   selectedCount,
   onBulkAction,
@@ -22,263 +30,438 @@ export const PhotoBulkActions = memo<PhotoBulkActionsProps>(function PhotoBulkAc
   totalCount,
 }) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showWorkTypeDialog, setShowWorkTypeDialog] = useState(false);
-  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
-  const [showTagDialog, setShowTagDialog] = useState(false);
-  const [selectedWorkType, setSelectedWorkType] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [tagInput, setTagInput] = useState('');
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [targetProjectId, setTargetProjectId] = useState('');
+  const [selectedWorkType, setSelectedWorkType] = useState<WorkType | ''>('');
+  const [selectedCategory, setSelectedCategory] = useState<PhotoCategory | ''>('');
+  const [tags, setTags] = useState('');
 
   const handleAction = useCallback(
-    async (action: BulkActionType, payload?: { workType?: WorkType; category?: PhotoCategory; tags?: string[] }) => {
-      if (isProcessing) return;
+    async (action: BulkActionType, payload?: BulkActionRequest['payload']) => {
+      if (selectedCount === 0) return;
+
       setIsProcessing(true);
       try {
-        const request: BulkActionRequest = {
+        const result = await onBulkAction({
           action,
           photoIds: Array.from(selectedIds),
           payload,
-        };
-        await onBulkAction(request);
+        });
+
+        if (!result.success && result.errors && result.errors.length > 0) {
+          console.error('Bulk action errors:', result.errors);
+          alert(`一部の写真で処理に失敗しました: ${result.failed}件`);
+        }
+      } catch (error) {
+        console.error('Bulk action error:', error);
+        alert('処理中にエラーが発生しました');
       } finally {
         setIsProcessing(false);
-        setShowWorkTypeDialog(false);
-        setShowCategoryDialog(false);
-        setShowTagDialog(false);
+        setModalType(null);
       }
     },
-    [isProcessing, onBulkAction, selectedIds]
+    [selectedCount, selectedIds, onBulkAction]
   );
 
-  const handleDelete = useCallback(async () => {
-    if (confirm(`${selectedCount}枚の写真を削除しますか？この操作は取り消せません。`)) {
-      await handleAction('delete');
-    }
-  }, [selectedCount, handleAction]);
+  const handleDelete = useCallback(() => {
+    handleAction('delete');
+  }, [handleAction]);
 
-  const handleWorkTypeUpdate = useCallback(async () => {
-    if (selectedWorkType) {
-      await handleAction('updateWorkType', { workType: selectedWorkType as WorkType });
+  const handleMove = useCallback(() => {
+    if (!targetProjectId) {
+      alert('移動先のプロジェクトを選択してください');
+      return;
     }
-  }, [selectedWorkType, handleAction]);
+    handleAction('move', { targetProjectId });
+    setTargetProjectId('');
+  }, [handleAction, targetProjectId]);
 
-  const handleCategoryUpdate = useCallback(async () => {
-    if (selectedCategory) {
-      await handleAction('updateCategory', { category: selectedCategory as PhotoCategory });
+  const handleUpdateWorkType = useCallback(() => {
+    if (!selectedWorkType) {
+      alert('工種を選択してください');
+      return;
     }
-  }, [selectedCategory, handleAction]);
+    handleAction('updateWorkType', { workType: selectedWorkType });
+    setSelectedWorkType('');
+  }, [handleAction, selectedWorkType]);
 
-  const handleAddTags = useCallback(async () => {
-    const tags = tagInput.split(',').map((t) => t.trim()).filter(Boolean);
-    if (tags.length > 0) {
-      await handleAction('addTags', { tags });
-      setTagInput('');
+  const handleUpdateCategory = useCallback(() => {
+    if (!selectedCategory) {
+      alert('種別を選択してください');
+      return;
     }
-  }, [tagInput, handleAction]);
+    handleAction('updateCategory', { category: selectedCategory });
+    setSelectedCategory('');
+  }, [handleAction, selectedCategory]);
 
-  const allSelected = selectedCount === totalCount && totalCount > 0;
+  const handleAddTags = useCallback(() => {
+    const tagList = tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (tagList.length === 0) {
+      alert('タグを入力してください');
+      return;
+    }
+    handleAction('addTags', { tags: tagList });
+    setTags('');
+  }, [handleAction, tags]);
+
+  if (selectedCount === 0) {
+    return null;
+  }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3
-      dark:border-blue-800 dark:bg-blue-900/20">
-      {/* Selection info */}
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-          {selectedCount}枚を選択中
-        </span>
-        <button
-          onClick={allSelected ? onDeselectAll : onSelectAll}
-          className="text-sm text-blue-600 underline hover:no-underline dark:text-blue-400"
-        >
-          {allSelected ? 'すべて解除' : 'すべて選択'}
-        </button>
-        <button
-          onClick={onDeselectAll}
-          className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-        >
-          選択解除
-        </button>
-      </div>
-
-      <div className="mx-2 h-6 w-px bg-blue-200 dark:bg-blue-700" />
-
-      {/* Action buttons */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Work type update */}
-        <div className="relative">
+    <>
+      {/* Bulk actions bar */}
+      <div className="sticky top-0 z-40 flex items-center justify-between rounded-lg bg-blue-500 px-4 py-3 text-white shadow-lg">
+        <div className="flex items-center gap-4">
           <button
-            onClick={() => setShowWorkTypeDialog(!showWorkTypeDialog)}
-            disabled={isProcessing}
-            className="flex items-center gap-1 rounded-lg border border-blue-300 bg-white px-3 py-1.5
-              text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100
-              disabled:opacity-50 dark:border-blue-600 dark:bg-blue-800 dark:text-blue-300
-              dark:hover:bg-blue-700"
+            onClick={onDeselectAll}
+            className="rounded-full p-1 hover:bg-white/20"
+            aria-label="Clear selection"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+          <span className="font-medium">
+            {selectedCount}件選択中
+            {selectedCount < totalCount && (
+              <button
+                onClick={onSelectAll}
+                className="ml-2 text-sm underline hover:no-underline"
+              >
+                (全{totalCount}件を選択)
+              </button>
+            )}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Work type button */}
+          <button
+            onClick={() => setModalType('workType')}
+            disabled={isProcessing}
+            className="flex items-center gap-1 rounded-lg bg-white/20 px-3 py-1.5 text-sm
+              transition-colors hover:bg-white/30 disabled:opacity-50"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"
+              />
             </svg>
             工種変更
           </button>
-          {showWorkTypeDialog && (
-            <div className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-zinc-200
-              bg-white p-3 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-              <select
-                value={selectedWorkType}
-                onChange={(e) => setSelectedWorkType(e.target.value)}
-                className="mb-2 w-full rounded border border-zinc-300 px-2 py-1 text-sm
-                  dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
-              >
-                <option value="">工種を選択</option>
-                {Object.entries(WORK_TYPE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleWorkTypeUpdate}
-                  disabled={!selectedWorkType}
-                  className="flex-1 rounded bg-blue-500 px-2 py-1 text-sm text-white
-                    hover:bg-blue-600 disabled:opacity-50"
-                >
-                  適用
-                </button>
-                <button
-                  onClick={() => setShowWorkTypeDialog(false)}
-                  className="rounded px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100
-                    dark:text-zinc-400 dark:hover:bg-zinc-700"
-                >
-                  キャンセル
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Category update */}
-        <div className="relative">
+          {/* Category button */}
           <button
-            onClick={() => setShowCategoryDialog(!showCategoryDialog)}
+            onClick={() => setModalType('category')}
             disabled={isProcessing}
-            className="flex items-center gap-1 rounded-lg border border-blue-300 bg-white px-3 py-1.5
-              text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100
-              disabled:opacity-50 dark:border-blue-600 dark:bg-blue-800 dark:text-blue-300
-              dark:hover:bg-blue-700"
+            className="flex items-center gap-1 rounded-lg bg-white/20 px-3 py-1.5 text-sm
+              transition-colors hover:bg-white/30 disabled:opacity-50"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
             </svg>
             種別変更
           </button>
-          {showCategoryDialog && (
-            <div className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-zinc-200
-              bg-white p-3 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="mb-2 w-full rounded border border-zinc-300 px-2 py-1 text-sm
-                  dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
-              >
-                <option value="">種別を選択</option>
-                {Object.entries(PHOTO_CATEGORY_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleCategoryUpdate}
-                  disabled={!selectedCategory}
-                  className="flex-1 rounded bg-blue-500 px-2 py-1 text-sm text-white
-                    hover:bg-blue-600 disabled:opacity-50"
-                >
-                  適用
-                </button>
-                <button
-                  onClick={() => setShowCategoryDialog(false)}
-                  className="rounded px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100
-                    dark:text-zinc-400 dark:hover:bg-zinc-700"
-                >
-                  キャンセル
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Add tags */}
-        <div className="relative">
+          {/* Tags button */}
           <button
-            onClick={() => setShowTagDialog(!showTagDialog)}
+            onClick={() => setModalType('tags')}
             disabled={isProcessing}
-            className="flex items-center gap-1 rounded-lg border border-blue-300 bg-white px-3 py-1.5
-              text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100
-              disabled:opacity-50 dark:border-blue-600 dark:bg-blue-800 dark:text-blue-300
-              dark:hover:bg-blue-700"
+            className="flex items-center gap-1 rounded-lg bg-white/20 px-3 py-1.5 text-sm
+              transition-colors hover:bg-white/30 disabled:opacity-50"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"
+              />
             </svg>
             タグ追加
           </button>
-          {showTagDialog && (
-            <div className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-zinc-200
-              bg-white p-3 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                placeholder="タグをカンマ区切りで入力"
-                className="mb-2 w-full rounded border border-zinc-300 px-2 py-1 text-sm
-                  dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleAddTags}
-                  disabled={!tagInput.trim()}
-                  className="flex-1 rounded bg-blue-500 px-2 py-1 text-sm text-white
-                    hover:bg-blue-600 disabled:opacity-50"
-                >
-                  追加
-                </button>
-                <button
-                  onClick={() => setShowTagDialog(false)}
-                  className="rounded px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100
-                    dark:text-zinc-400 dark:hover:bg-zinc-700"
-                >
-                  キャンセル
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Delete */}
-        <button
-          onClick={handleDelete}
-          disabled={isProcessing}
-          className="flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-1.5
-            text-sm font-medium text-red-700 transition-colors hover:bg-red-50
-            disabled:opacity-50 dark:border-red-600 dark:bg-red-800/20 dark:text-red-400
-            dark:hover:bg-red-800/40"
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-          削除
-        </button>
+          {/* Move button */}
+          <button
+            onClick={() => setModalType('move')}
+            disabled={isProcessing}
+            className="flex items-center gap-1 rounded-lg bg-white/20 px-3 py-1.5 text-sm
+              transition-colors hover:bg-white/30 disabled:opacity-50"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+              />
+            </svg>
+            移動
+          </button>
+
+          {/* Delete button */}
+          <button
+            onClick={() => setModalType('delete')}
+            disabled={isProcessing}
+            className="flex items-center gap-1 rounded-lg bg-red-500 px-3 py-1.5 text-sm
+              transition-colors hover:bg-red-600 disabled:opacity-50"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            削除
+          </button>
+        </div>
       </div>
 
-      {/* Processing indicator */}
-      {isProcessing && (
-        <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          処理中...
+      {/* Modal */}
+      {modalType && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setModalType(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-lg bg-white p-6 dark:bg-zinc-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {modalType === 'delete' && (
+              <>
+                <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
+                  写真の削除
+                </h3>
+                <p className="mb-6 text-zinc-600 dark:text-zinc-400">
+                  選択した{selectedCount}件の写真を削除しますか？この操作は取り消せません。
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="rounded-lg px-4 py-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isProcessing}
+                    className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-50"
+                  >
+                    {isProcessing ? '処理中...' : '削除する'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {modalType === 'move' && (
+              <>
+                <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
+                  写真の移動
+                </h3>
+                <div className="mb-6">
+                  <label className="mb-2 block text-sm text-zinc-600 dark:text-zinc-400">
+                    移動先プロジェクト
+                  </label>
+                  <select
+                    value={targetProjectId}
+                    onChange={(e) => setTargetProjectId(e.target.value)}
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
+                  >
+                    <option value="">選択してください</option>
+                    <option value="project-1">プロジェクト1</option>
+                    <option value="project-2">プロジェクト2</option>
+                    <option value="project-3">プロジェクト3</option>
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="rounded-lg px-4 py-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleMove}
+                    disabled={isProcessing || !targetProjectId}
+                    className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {isProcessing ? '処理中...' : '移動する'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {modalType === 'workType' && (
+              <>
+                <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
+                  工種の変更
+                </h3>
+                <div className="mb-6">
+                  <label className="mb-2 block text-sm text-zinc-600 dark:text-zinc-400">
+                    工種を選択
+                  </label>
+                  <select
+                    value={selectedWorkType}
+                    onChange={(e) => setSelectedWorkType(e.target.value as WorkType)}
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
+                  >
+                    <option value="">選択してください</option>
+                    {(Object.entries(WORK_TYPE_LABELS) as [WorkType, string][]).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="rounded-lg px-4 py-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleUpdateWorkType}
+                    disabled={isProcessing || !selectedWorkType}
+                    className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {isProcessing ? '処理中...' : '変更する'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {modalType === 'category' && (
+              <>
+                <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
+                  種別の変更
+                </h3>
+                <div className="mb-6">
+                  <label className="mb-2 block text-sm text-zinc-600 dark:text-zinc-400">
+                    種別を選択
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value as PhotoCategory)}
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
+                  >
+                    <option value="">選択してください</option>
+                    {(Object.entries(PHOTO_CATEGORY_LABELS) as [PhotoCategory, string][]).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="rounded-lg px-4 py-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleUpdateCategory}
+                    disabled={isProcessing || !selectedCategory}
+                    className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {isProcessing ? '処理中...' : '変更する'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {modalType === 'tags' && (
+              <>
+                <h3 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
+                  タグの追加
+                </h3>
+                <div className="mb-6">
+                  <label className="mb-2 block text-sm text-zinc-600 dark:text-zinc-400">
+                    タグ（カンマ区切りで複数入力可能）
+                  </label>
+                  <input
+                    type="text"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="例: 完成写真, 外観"
+                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
+                  />
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="rounded-lg px-4 py-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleAddTags}
+                    disabled={isProcessing || !tags.trim()}
+                    className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {isProcessing ? '処理中...' : '追加する'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 });
 

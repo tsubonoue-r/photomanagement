@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type {
   Photo,
   PhotoFilters,
@@ -27,7 +27,6 @@ interface UsePhotosReturn {
   filters: PhotoFilters;
   sort: PhotoSort;
   selectedIds: Set<string>;
-  // Actions
   fetchPhotos: (page?: number) => Promise<void>;
   setFilters: (filters: PhotoFilters) => void;
   setSort: (sort: PhotoSort) => void;
@@ -44,7 +43,7 @@ export function usePhotos(options: UsePhotosOptions = {}): UsePhotosReturn {
   const {
     projectId,
     initialFilters = {},
-    initialSort = { field: 'takenAt', direction: 'desc' },
+    initialSort = { field: 'date', order: 'desc' },
     initialLimit = 20,
     autoFetch = true,
   } = options;
@@ -65,7 +64,7 @@ export function usePhotos(options: UsePhotosOptions = {}): UsePhotosReturn {
     params.set('page', String(currentPage));
     params.set('limit', String(initialLimit));
     params.set('sortField', sort.field);
-    params.set('sortOrder', sort.direction);
+    params.set('sortOrder', sort.order);
 
     if (filters.workType) {
       params.set(
@@ -190,7 +189,8 @@ export function usePhotos(options: UsePhotosOptions = {}): UsePhotosReturn {
       console.error('Bulk action error:', err);
       return {
         success: false,
-        affectedCount: 0,
+        processed: 0,
+        failed: action.photoIds.length,
         errors: action.photoIds.map((id) => ({
           photoId: id,
           error: message,
