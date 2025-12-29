@@ -48,7 +48,6 @@ export function BlackboardPreview({
   const svgStyle: React.CSSProperties = {
     display: 'block',
     width: template.width * scale,
-    height: template.height * scale,
     maxWidth: '100%',
     height: 'auto'
   }

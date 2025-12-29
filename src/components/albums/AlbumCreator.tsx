@@ -53,6 +53,7 @@ export function AlbumCreator({
 
       const request: CreateAlbumRequest = {
         projectId,
+        name: title.trim(),
         title: title.trim(),
         description: description.trim() || undefined,
         cover,

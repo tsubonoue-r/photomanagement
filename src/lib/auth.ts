@@ -13,7 +13,8 @@ const credentialsSchema = z.object({
 });
 
 export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: PrismaAdapter(prisma) as any,
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -68,7 +69,7 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role as Role;
+        token.role = (user as { role?: Role }).role ?? 'VIEWER';
       }
       return token;
     },

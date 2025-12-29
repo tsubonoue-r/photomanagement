@@ -51,7 +51,7 @@ export function PhotoSelector({
    * Select all photos
    */
   const selectAllPhotos = () => {
-    setSelectedPhotos(new Set(album.photos.map((p) => p.photoId)));
+    setSelectedPhotos(new Set(album.photos.map((p) => p.id)));
   };
 
   /**
@@ -98,10 +98,10 @@ export function PhotoSelector({
       }
 
       const draggedIndex = sortedPhotos.findIndex(
-        (p) => p.photoId === draggedPhoto
+        (p) => p.id === draggedPhoto
       );
       const targetIndex = sortedPhotos.findIndex(
-        (p) => p.photoId === targetPhotoId
+        (p) => p.id === targetPhotoId
       );
 
       if (draggedIndex === -1 || targetIndex === -1) {
@@ -116,7 +116,7 @@ export function PhotoSelector({
 
       // Generate new orders
       const photoOrders = newPhotos.map((photo, index) => ({
-        photoId: photo.photoId,
+        photoId: photo.id,
         order: index,
       }));
 
@@ -132,7 +132,7 @@ export function PhotoSelector({
   const toggleBlackboard = async (photo: AlbumPhoto) => {
     // This would call the API to update photo settings
     // For now, we'll just show a message
-    alert(`Toggle blackboard for photo ${photo.photoId}`);
+    alert(`Toggle blackboard for photo ${photo.id}`);
   };
 
   /**
@@ -236,21 +236,21 @@ export function PhotoSelector({
             <div
               key={photo.id}
               draggable
-              onDragStart={() => handleDragStart(photo.photoId)}
+              onDragStart={() => handleDragStart(photo.id)}
               onDragOver={handleDragOver}
-              onDrop={() => handleDrop(photo.photoId)}
+              onDrop={() => handleDrop(photo.id)}
               className={`relative bg-white rounded-lg shadow-sm border overflow-hidden cursor-move transition-all ${
-                selectedPhotos.has(photo.photoId)
+                selectedPhotos.has(photo.id)
                   ? 'border-blue-600 ring-2 ring-blue-200'
                   : 'border-gray-200 hover:border-gray-300'
-              } ${draggedPhoto === photo.photoId ? 'opacity-50' : ''}`}
+              } ${draggedPhoto === photo.id ? 'opacity-50' : ''}`}
             >
               {/* Selection Checkbox */}
               <div className="absolute top-2 left-2 z-10">
                 <input
                   type="checkbox"
-                  checked={selectedPhotos.has(photo.photoId)}
-                  onChange={() => togglePhotoSelection(photo.photoId)}
+                  checked={selectedPhotos.has(photo.id)}
+                  onChange={() => togglePhotoSelection(photo.id)}
                   className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                   onClick={(e) => e.stopPropagation()}
                 />
@@ -264,12 +264,12 @@ export function PhotoSelector({
               {/* Photo Thumbnail */}
               <div
                 className="aspect-square bg-gray-100 flex items-center justify-center"
-                onClick={() => togglePhotoSelection(photo.photoId)}
+                onClick={() => togglePhotoSelection(photo.id)}
               >
-                {photo.photo.thumbnailSmallUrl ? (
+                {photo.thumbnailUrl ? (
                   <img
-                    src={photo.photo.thumbnailSmallUrl}
-                    alt={photo.caption || `Photo ${index + 1}`}
+                    src={photo.thumbnailUrl}
+                    alt={photo.title || `Photo ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -280,18 +280,18 @@ export function PhotoSelector({
               {/* Photo Info */}
               <div className="p-2">
                 <p className="text-xs text-gray-500 truncate">
-                  {photo.photo.metadata.originalName || photo.photoId}
+                  {photo.title || photo.id}
                 </p>
                 <div className="flex items-center justify-between mt-1">
                   <button
                     onClick={() => toggleBlackboard(photo)}
                     className={`text-xs px-2 py-0.5 rounded ${
-                      photo.includeBlackboard
+                      photo.blackboardInfo
                         ? 'bg-green-100 text-green-700'
                         : 'bg-gray-100 text-gray-500'
                     }`}
                   >
-                    {photo.includeBlackboard ? 'BB On' : 'BB Off'}
+                    {photo.blackboardInfo ? 'BB On' : 'BB Off'}
                   </button>
                 </div>
               </div>
