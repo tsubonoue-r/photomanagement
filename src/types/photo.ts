@@ -1,69 +1,7 @@
 /**
  * Photo related type definitions
+ * Issue #9: Photo List and Search Functionality
  */
-
-export interface ExifData {
-  make?: string;
-  model?: string;
-  dateTimeOriginal?: Date;
-  exposureTime?: number;
-  fNumber?: number;
-  iso?: number;
-  focalLength?: number;
-  latitude?: number;
-  longitude?: number;
-  width?: number;
-  height?: number;
-}
-
-export interface PhotoMetadata {
-  id: string;
-  originalName: string;
-  mimeType: string;
-  size: number;
-  width: number;
-  height: number;
-  exif: ExifData;
-  uploadedAt: Date;
-}
-
-export interface UploadedPhoto {
-  id: string;
-  originalUrl: string;
-  thumbnailSmallUrl: string;
-  thumbnailLargeUrl: string;
-  metadata: PhotoMetadata;
-}
-
-export interface UploadProgress {
-  fileId: string;
-  fileName: string;
-  progress: number;
-  status: 'pending' | 'uploading' | 'processing' | 'completed' | 'error';
-  error?: string;
-}
-
-export interface UploadResult {
-  success: boolean;
-  photo?: UploadedPhoto;
-  error?: string;
-}
-
-export const ALLOWED_MIME_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/heic',
-  'image/heif',
-] as const;
-
-export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-
-export const THUMBNAIL_SIZES = {
-  small: { width: 200, height: 200 },
-  large: { width: 800, height: 800 },
-} as const;
-
-export type ThumbnailSize = keyof typeof THUMBNAIL_SIZES;
 
 /**
  * Work types for construction photos
@@ -96,33 +34,33 @@ export type PhotoCategory =
  * Work type labels in Japanese
  */
 export const WORK_TYPE_LABELS: Record<WorkType, string> = {
-  foundation: '基礎工事',
-  framing: '躯体工事',
-  roofing: '屋根工事',
-  exterior: '外装工事',
-  interior: '内装工事',
-  electrical: '電気工事',
-  plumbing: '配管工事',
-  finishing: '仕上工事',
-  inspection: '検査',
-  other: 'その他',
+  foundation: 'kiso-kouji',
+  framing: 'kutai-kouji',
+  roofing: 'yane-kouji',
+  exterior: 'gaisou-kouji',
+  interior: 'naisou-kouji',
+  electrical: 'denki-kouji',
+  plumbing: 'haikan-kouji',
+  finishing: 'shiage-kouji',
+  inspection: 'kensa',
+  other: 'sonota',
 };
 
 /**
  * Photo category labels in Japanese
  */
 export const PHOTO_CATEGORY_LABELS: Record<PhotoCategory, string> = {
-  before: '着手前',
-  during: '施工中',
-  after: '完成',
-  material: '材料',
-  equipment: '機材',
-  defect: '不具合',
-  other: 'その他',
+  before: 'chakkou-mae',
+  during: 'sekou-chuu',
+  after: 'kanryou',
+  material: 'shizai',
+  equipment: 'setsubi',
+  defect: 'fuguai',
+  other: 'sonota',
 };
 
 /**
- * Photo entity for list/search
+ * Photo entity
  */
 export interface Photo {
   id: string;
@@ -166,21 +104,11 @@ export interface PhotoFilters {
 }
 
 /**
- * Sort field options
- */
-export type SortField = 'date' | 'name' | 'createdAt' | 'updatedAt';
-
-/**
- * Sort order options
- */
-export type SortOrder = 'asc' | 'desc';
-
-/**
  * Photo sort options
  */
 export interface PhotoSort {
-  field: SortField;
-  order: SortOrder;
+  field: 'takenAt' | 'uploadedAt' | 'filename' | 'size';
+  direction: 'asc' | 'desc';
 }
 
 /**
@@ -246,8 +174,6 @@ export interface BulkActionRequest {
  */
 export interface BulkActionResponse {
   success: boolean;
-  processed: number;
-  failed: number;
-  affectedCount?: number;
+  affectedCount: number;
   errors?: { photoId: string; error: string }[];
 }

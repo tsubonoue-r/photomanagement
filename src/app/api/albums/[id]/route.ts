@@ -1,93 +1,51 @@
 /**
- * Album Detail API Route
- * GET /api/albums/[id] - Get album
- * PUT /api/albums/[id] - Update album
- * PATCH /api/albums/[id] - Partial operations (add/remove/reorder photos)
+ * Album Detail API Routes
+ * GET /api/albums/[id] - Get album details
+ * PATCH /api/albums/[id] - Update album
  * DELETE /api/albums/[id] - Delete album
- *
- * Issue #10: Album and Report Output
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getAlbum,
-  updateAlbum,
-  deleteAlbum,
-  addPhotoIdsToAlbum,
-  removePhotosFromAlbum,
-  reorderPhotos,
-} from '@/lib/album/album-service';
-import { UpdateAlbumInput } from '@/types/album';
+import { getAlbumById, updateAlbum, deleteAlbum } from '@/lib/album/album-service';
+import type { UpdateAlbumInput, AlbumApiResponse, Album } from '@/types/album';
 
-interface RouteContext {
+interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
 /**
  * GET /api/albums/[id]
- * Get a single album by ID
+ * Get album details
  */
 export async function GET(
-  request: NextRequest,
-  context: RouteContext
-) {
+  _request: NextRequest,
+  { params }: RouteParams
+): Promise<NextResponse<AlbumApiResponse<Album>>> {
   try {
-    const { id } = await context.params;
-    const album = await getAlbum(id);
+    const { id } = await params;
+    const album = await getAlbumById(id);
 
     if (!album) {
       return NextResponse.json(
-        { error: 'Album not found' },
+        {
+          success: false,
+          error: 'Album not found',
+        },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(album);
+    return NextResponse.json({
+      success: true,
+      data: album,
+    });
   } catch (error) {
-    console.error('Failed to fetch album:', error);
+    console.error('Error fetching album:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch album' },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * PUT /api/albums/[id]
- * Update album metadata
- */
-export async function PUT(
-  request: NextRequest,
-  context: RouteContext
-) {
-  try {
-    const { id } = await context.params;
-    const body = await request.json();
-
-    const input: UpdateAlbumInput = {
-      name: body.name,
-      title: body.title,
-      description: body.description,
-      coverPhotoId: body.coverPhotoId,
-      cover: body.cover,
-      status: body.status,
-      exportOptions: body.exportOptions,
-    };
-
-    const album = await updateAlbum(id, input);
-
-    if (!album) {
-      return NextResponse.json(
-        { error: 'Album not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(album);
-  } catch (error) {
-    console.error('Failed to update album:', error);
-    return NextResponse.json(
-      { error: 'Failed to update album' },
+      {
+        success: false,
+        error: 'Failed to fetch album',
+      },
       { status: 500 }
     );
   }
@@ -95,74 +53,39 @@ export async function PUT(
 
 /**
  * PATCH /api/albums/[id]
- * Perform partial operations on album
- *
- * Actions:
- * - addPhotos: Add photos to album
- * - removePhotos: Remove photos from album
- * - reorderPhotos: Reorder photos in album
+ * Update album
  */
 export async function PATCH(
   request: NextRequest,
-  context: RouteContext
-) {
+  { params }: RouteParams
+): Promise<NextResponse<AlbumApiResponse<Album>>> {
   try {
-    const { id } = await context.params;
-    const action = request.nextUrl.searchParams.get('action');
-    const body = await request.json();
+    const { id } = await params;
+    const body = await request.json() as UpdateAlbumInput;
 
-    let album;
-
-    switch (action) {
-      case 'addPhotos':
-        if (!body.photoIds || !Array.isArray(body.photoIds)) {
-          return NextResponse.json(
-            { error: 'Photo IDs array is required' },
-            { status: 400 }
-          );
-        }
-        album = await addPhotoIdsToAlbum(id, body.photoIds);
-        break;
-
-      case 'removePhotos':
-        if (!body.photoIds || !Array.isArray(body.photoIds)) {
-          return NextResponse.json(
-            { error: 'Photo IDs array is required' },
-            { status: 400 }
-          );
-        }
-        album = await removePhotosFromAlbum(id, body.photoIds);
-        break;
-
-      case 'reorderPhotos':
-        if (!body.photoOrders || !Array.isArray(body.photoOrders)) {
-          return NextResponse.json(
-            { error: 'Photo orders array is required' },
-            { status: 400 }
-          );
-        }
-        album = await reorderPhotos(id, body.photoOrders);
-        break;
-
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action. Valid actions: addPhotos, removePhotos, reorderPhotos' },
-          { status: 400 }
-        );
-    }
+    const album = await updateAlbum(id, body);
 
     if (!album) {
       return NextResponse.json(
-        { error: 'Album not found' },
+        {
+          success: false,
+          error: 'Album not found',
+        },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(album);
+    return NextResponse.json({
+      success: true,
+      data: album,
+    });
   } catch (error) {
-    console.error('Failed to perform album action:', error);
+    console.error('Error updating album:', error);
     return NextResponse.json(
-      { error: 'Failed to perform album action' },
+      {
+        success: false,
+        error: 'Failed to update album',
+      },
       { status: 500 }
     );
   }
@@ -170,28 +93,37 @@ export async function PATCH(
 
 /**
  * DELETE /api/albums/[id]
- * Delete an album
+ * Delete album
  */
 export async function DELETE(
-  request: NextRequest,
-  context: RouteContext
-) {
+  _request: NextRequest,
+  { params }: RouteParams
+): Promise<NextResponse<AlbumApiResponse<{ deleted: boolean }>>> {
   try {
-    const { id } = await context.params;
-    const success = await deleteAlbum(id);
+    const { id } = await params;
+    const deleted = await deleteAlbum(id);
 
-    if (!success) {
+    if (!deleted) {
       return NextResponse.json(
-        { error: 'Album not found' },
+        {
+          success: false,
+          error: 'Album not found',
+        },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      data: { deleted: true },
+    });
   } catch (error) {
-    console.error('Failed to delete album:', error);
+    console.error('Error deleting album:', error);
     return NextResponse.json(
-      { error: 'Failed to delete album' },
+      {
+        success: false,
+        error: 'Failed to delete album',
+      },
       { status: 500 }
     );
   }

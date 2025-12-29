@@ -2,16 +2,66 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-const bulkReorderSchema = z.object({ items: z.array(z.object({ id: z.string().min(1), sortOrder: z.number().min(0), parentId: z.string().nullable().optional() })) });
+const reorderSchema = z.object({
+  categoryId: z.string(),
+  newIndex: z.number().min(0),
+  parentId: z.string().nullable(),
+});
 
+// POST /api/categories/reorder - カテゴリ並び替え
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validation = bulkReorderSchema.safeParse(body);
-    if (!validation.success) return NextResponse.json({ error: "Invalid input", details: validation.error.issues }, { status: 400 });
+    const { categoryId, newIndex, parentId } = reorderSchema.parse(body);
 
-    const { items } = validation.data;
-    await prisma.$transaction(items.map((item) => prisma.category.update({ where: { id: item.id }, data: { sortOrder: item.sortOrder, parentId: item.parentId !== undefined ? item.parentId : undefined } })));
-    return NextResponse.json({ success: true, message: `${items.length}件のカテゴリを並び替えました` });
-  } catch (error) { console.error("Failed to reorder categories:", error); return NextResponse.json({ error: "カテゴリの並び替えに失敗しました" }, { status: 500 }); }
+    // 対象カテゴリを取得
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      return NextResponse.json(
+        { error: "カテゴリが見つかりません" },
+        { status: 404 }
+      );
+    }
+
+    // 同じ親を持つ兄弟カテゴリを取得（sortOrder順）
+    const siblings = await prisma.category.findMany({
+      where: {
+        projectId: category.projectId,
+        parentId: parentId,
+        id: { not: categoryId }, // 自分自身を除く
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+
+    // 新しい順序を計算
+    const reorderedSiblings = [...siblings];
+    reorderedSiblings.splice(newIndex, 0, category);
+
+    // トランザクションでsortOrderを一括更新
+    await prisma.$transaction(
+      reorderedSiblings.map((sibling, index) =>
+        prisma.category.update({
+          where: { id: sibling.id },
+          data: { sortOrder: index + 1 },
+        })
+      )
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "バリデーションエラー", details: error.errors },
+        { status: 400 }
+      );
+    }
+    console.error("Failed to reorder categories:", error);
+    return NextResponse.json(
+      { error: "カテゴリの並び替えに失敗しました" },
+      { status: 500 }
+    );
+  }
 }

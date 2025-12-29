@@ -1,16 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { use } from "react";
-import {
-  Plus,
-  Download,
-  FolderTree,
-  GripVertical,
-  Loader2,
-  AlertCircle,
-  RefreshCw,
-} from "lucide-react";
+import React, { useState, useEffect, useCallback, use } from "react";
+import { Plus, RefreshCw, GripVertical, List } from "lucide-react";
 import {
   CategoryTree,
   CategoryForm,
@@ -18,68 +9,97 @@ import {
   ImportStandardCategories,
 } from "@/components/categories";
 import type { Category, CategoryFormData } from "@/types/category";
-
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+import { getLevelName } from "@/types/category";
 
 type ViewMode = "tree" | "reorder";
 
-export default function CategoriesPage({ params }: PageProps) {
-  const { id: projectId } = use(params);
+interface DeleteConfirmModalProps {
+  category: Category;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
 
-  // 状態
+function DeleteConfirmModal({ category, onConfirm, onCancel }: DeleteConfirmModalProps) {
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onCancel} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
+          <h3 className="text-lg font-semibold mb-2">カテゴリを削除</h3>
+          <p className="text-gray-600 mb-4">
+            「{category.name}」を削除しますか？この操作は取り消せません。
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-sm border rounded-md hover:bg-gray-50"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md"
+            >
+              削除
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default function CategoriesPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const projectId = resolvedParams.id;
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [viewMode, setViewMode] = useState<ViewMode>("tree");
-
-  // 展開状態
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
-  // モーダル状態
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isImportOpen, setIsImportOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [parentCategory, setParentCategory] = useState<Category | null>(null);
 
-  // 選択状態
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
 
-  // カテゴリ一覧を取得
+  const [existingCodes, setExistingCodes] = useState<Set<string>>(new Set());
+
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `/api/categories?projectId=${projectId}&parentId=null&includeChildren=true`
-      );
-      if (!response.ok) {
-        throw new Error("カテゴリの取得に失敗しました");
-      }
+      const response = await fetch(`/api/categories?projectId=${projectId}`);
+      if (!response.ok) throw new Error("カテゴリの取得に失敗しました");
       const data = await response.json();
       setCategories(data.categories);
 
-      // 初回は工種を展開
-      if (expandedIds.size === 0) {
-        const level1Ids = data.categories.map((c: Category) => c.id);
-        setExpandedIds(new Set(level1Ids));
-      }
+      // 既存のコードを収集
+      const codes = new Set<string>();
+      const collectCodes = (cats: Category[]) => {
+        for (const cat of cats) {
+          if (cat.code) codes.add(cat.code);
+          if (cat.children) collectCodes(cat.children);
+        }
+      };
+      collectCodes(data.categories);
+      setExistingCodes(codes);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
       setIsLoading(false);
     }
-  }, [projectId, expandedIds.size]);
+  }, [projectId]);
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // 展開/折りたたみ
   const handleToggleExpand = (id: string) => {
     const newExpanded = new Set(expandedIds);
     if (newExpanded.has(id)) {
@@ -90,28 +110,25 @@ export default function CategoriesPage({ params }: PageProps) {
     setExpandedIds(newExpanded);
   };
 
-  // カテゴリ選択
   const handleSelect = (category: Category) => {
     setSelectedCategory(category);
   };
 
-  // 新規工種追加
-  const handleAddWorkType = () => {
+  const handleAddRoot = () => {
     setFormMode("create");
     setEditingCategory(null);
     setParentCategory(null);
     setIsFormOpen(true);
   };
 
-  // 子カテゴリ追加
   const handleAddChild = (parent: Category) => {
+    if (parent.level >= 3) return;
     setFormMode("create");
     setEditingCategory(null);
     setParentCategory(parent);
     setIsFormOpen(true);
   };
 
-  // 編集
   const handleEdit = (category: Category) => {
     setFormMode("edit");
     setEditingCategory(category);
@@ -119,200 +136,168 @@ export default function CategoriesPage({ params }: PageProps) {
     setIsFormOpen(true);
   };
 
-  // 削除
-  const handleDelete = async (category: Category) => {
-    const childCount = category._count?.children ?? 0;
-    const photoCount = category._count?.photos ?? 0;
+  const handleDelete = (category: Category) => {
+    setDeleteTarget(category);
+  };
 
-    let message = `「${category.name}」を削除しますか？`;
-    if (childCount > 0) {
-      message += `\n\n注意: ${childCount}件の子カテゴリも一緒に削除されます。`;
-    }
-    if (photoCount > 0) {
-      message = `このカテゴリには${photoCount}枚の写真が関連付けられているため削除できません。\n先に写真を移動または削除してください。`;
-      alert(message);
-      return;
-    }
-
-    if (!confirm(message)) return;
-
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      const response = await fetch(`/api/categories/${category.id}`, {
+      const response = await fetch(`/api/categories/${deleteTarget.id}`, {
         method: "DELETE",
       });
-
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || "削除に失敗しました");
       }
-
       await fetchCategories();
-      if (selectedCategory?.id === category.id) {
+      if (selectedCategory?.id === deleteTarget.id) {
         setSelectedCategory(null);
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "削除に失敗しました");
+      setError(err instanceof Error ? err.message : "削除に失敗しました");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
-  // フォーム送信
   const handleFormSubmit = async (data: CategoryFormData) => {
-    if (formMode === "create") {
-      const response = await fetch("/api/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          projectId,
-        }),
-      });
+    const url =
+      formMode === "edit" && editingCategory
+        ? `/api/categories/${editingCategory.id}`
+        : "/api/categories";
+    const method = formMode === "edit" ? "PATCH" : "POST";
 
-      if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.error || "作成に失敗しました");
-      }
-    } else {
-      const response = await fetch(`/api/categories/${editingCategory!.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          code: data.code,
-        }),
-      });
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...data,
+        projectId,
+      }),
+    });
 
-      if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.error || "更新に失敗しました");
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "保存に失敗しました");
     }
 
     await fetchCategories();
   };
 
-  // 並び替え
   const handleReorder = async (
-    items: { id: string; sortOrder: number }[]
+    categoryId: string,
+    newIndex: number,
+    parentId: string | null
   ) => {
     const response = await fetch("/api/categories/reorder", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ categoryId, newIndex, parentId }),
     });
 
     if (!response.ok) {
       throw new Error("並び替えに失敗しました");
     }
+
+    await fetchCategories();
   };
 
-  // インポート完了
-  const handleImportComplete = () => {
-    fetchCategories();
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2">
-          <FolderTree className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            カテゴリ管理
-          </h1>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">カテゴリ管理</h1>
+          <p className="text-gray-600 mt-1">
+            工種・種別・細別を管理します
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* 表示切替 */}
-          <div className="flex rounded-md border border-gray-300 dark:border-gray-600">
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
             <button
-              className={`px-3 py-1.5 text-sm ${
-                viewMode === "tree"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-              } rounded-l-md`}
               onClick={() => setViewMode("tree")}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm ${
+                viewMode === "tree"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
             >
-              <FolderTree className="w-4 h-4" />
+              <List className="w-4 h-4" />
+              ツリー
             </button>
             <button
-              className={`px-3 py-1.5 text-sm ${
-                viewMode === "reorder"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-              } rounded-r-md`}
               onClick={() => setViewMode("reorder")}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm ${
+                viewMode === "reorder"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
             >
               <GripVertical className="w-4 h-4" />
+              並び替え
             </button>
           </div>
 
-          <button
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300
-                     bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600
-                     rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
-            onClick={() => setIsImportOpen(true)}
-          >
-            <Download className="w-4 h-4" />
-            標準インポート
-          </button>
+          <ImportStandardCategories
+            projectId={projectId}
+            onImport={fetchCategories}
+            existingCodes={existingCodes}
+          />
 
           <button
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-white
-                     bg-blue-600 hover:bg-blue-700 rounded-md"
-            onClick={handleAddWorkType}
+            onClick={handleAddRoot}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" />
-            工種を追加
+            {getLevelName(1)}を追加
           </button>
         </div>
       </div>
 
-      {/* コンテンツ */}
-      <div className="flex-1 overflow-auto p-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center h-64 gap-4">
-            <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="w-5 h-5" />
-              <span>{error}</span>
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="mt-2 text-sm text-red-600 underline"
+          >
+            閉じる
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg border shadow-sm">
+        <div className="p-4">
+          {categories.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">
+                カテゴリがありません
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <ImportStandardCategories
+                  projectId={projectId}
+                  onImport={fetchCategories}
+                  existingCodes={existingCodes}
+                />
+                <button
+                  onClick={handleAddRoot}
+                  className="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-50"
+                >
+                  <Plus className="w-4 h-4" />
+                  カスタムカテゴリを追加
+                </button>
+              </div>
             </div>
-            <button
-              className="flex items-center gap-2 px-4 py-2 text-sm text-white
-                       bg-blue-600 hover:bg-blue-700 rounded-md"
-              onClick={fetchCategories}
-            >
-              <RefreshCw className="w-4 h-4" />
-              再読み込み
-            </button>
-          </div>
-        ) : categories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-500">
-            <FolderTree className="w-12 h-12" />
-            <p>カテゴリがありません</p>
-            <div className="flex gap-2">
-              <button
-                className="flex items-center gap-2 px-4 py-2 text-sm
-                         bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600
-                         rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
-                onClick={() => setIsImportOpen(true)}
-              >
-                <Download className="w-4 h-4" />
-                標準カテゴリをインポート
-              </button>
-              <button
-                className="flex items-center gap-2 px-4 py-2 text-sm text-white
-                         bg-blue-600 hover:bg-blue-700 rounded-md"
-                onClick={handleAddWorkType}
-              >
-                <Plus className="w-4 h-4" />
-                工種を追加
-              </button>
-            </div>
-          </div>
-        ) : viewMode === "tree" ? (
-          <div className="max-w-2xl">
+          ) : viewMode === "tree" ? (
             <CategoryTree
               categories={categories}
               selectedId={selectedCategory?.id}
@@ -323,23 +308,15 @@ export default function CategoriesPage({ params }: PageProps) {
               expandedIds={expandedIds}
               onToggleExpand={handleToggleExpand}
             />
-          </div>
-        ) : (
-          <div className="max-w-2xl">
-            <p className="text-sm text-gray-500 mb-4">
-              ドラッグ&ドロップでカテゴリの順序を変更できます
-            </p>
+          ) : (
             <CategoryDragDrop
               categories={categories}
               onReorder={handleReorder}
-              expandedIds={expandedIds}
-              onToggleExpand={handleToggleExpand}
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* フォームモーダル */}
       <CategoryForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -349,13 +326,13 @@ export default function CategoriesPage({ params }: PageProps) {
         mode={formMode}
       />
 
-      {/* インポートモーダル */}
-      <ImportStandardCategories
-        projectId={projectId}
-        isOpen={isImportOpen}
-        onClose={() => setIsImportOpen(false)}
-        onImportComplete={handleImportComplete}
-      />
+      {deleteTarget && (
+        <DeleteConfirmModal
+          category={deleteTarget}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }

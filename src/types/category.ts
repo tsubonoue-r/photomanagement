@@ -1,57 +1,55 @@
 /**
- * Category Types
- * For photo categorization in construction projects
+ * カテゴリ関連の型定義
  */
 
 export interface Category {
   id: string;
   name: string;
-  code?: string;
-  description?: string;
-  parentId?: string | null;
-  projectId: string;
-  order: number;
+  code: string | null;
   level: number;
-  path: string;
-  photoCount: number;
-  isStandard?: boolean;
-  children?: Category[];
+  sortOrder: number;
+  isStandard: boolean;
+  projectId: string;
+  parentId: string | null;
   createdAt: Date;
   updatedAt: Date;
-  _count?: {
-    children?: number;
-    photos?: number;
-  };
+  children?: Category[];
+  parent?: Category | null;
+  _count?: { photos: number; children: number };
 }
 
 export interface CategoryFormData {
   name: string;
   code?: string;
-  description?: string;
+  level: number;
   parentId?: string | null;
 }
 
 export interface CategoryCreateInput {
   name: string;
-  description?: string;
-  parentId?: string | null;
+  code?: string;
+  level: number;
+  sortOrder?: number;
+  isStandard?: boolean;
   projectId: string;
+  parentId?: string | null;
 }
 
 export interface CategoryUpdateInput {
   name?: string;
-  description?: string;
-  parentId?: string | null;
-  order?: number;
+  code?: string;
+  sortOrder?: number;
 }
 
-export interface CategoryReorderInput {
-  categoryId: string;
-  order: number;
-  parentId?: string | null;
-}
-
-export interface CategoryTreeNode extends Category {
+export interface CategoryTreeNode {
+  id: string;
+  name: string;
+  code: string | null;
+  level: number;
+  sortOrder: number;
+  isStandard: boolean;
+  parentId: string | null;
+  photoCount: number;
   children: CategoryTreeNode[];
 }
 
@@ -60,45 +58,5 @@ export interface CategoryListResponse {
   total: number;
 }
 
-export interface StandardCategory {
-  id: string;
-  name: string;
-  description: string;
-  children?: StandardCategory[];
-}
-
-export const CONSTRUCTION_STANDARD_CATEGORIES: StandardCategory[] = [
-  {
-    id: 'exterior',
-    name: 'Exterior',
-    description: 'Exterior construction work',
-    children: [
-      { id: 'foundation', name: 'Foundation', description: 'Foundation work' },
-      { id: 'framing', name: 'Framing', description: 'Structural framing' },
-      { id: 'roofing', name: 'Roofing', description: 'Roof installation' },
-      { id: 'siding', name: 'Siding', description: 'Exterior siding' },
-    ],
-  },
-  {
-    id: 'interior',
-    name: 'Interior',
-    description: 'Interior construction work',
-    children: [
-      { id: 'electrical', name: 'Electrical', description: 'Electrical work' },
-      { id: 'plumbing', name: 'Plumbing', description: 'Plumbing work' },
-      { id: 'hvac', name: 'HVAC', description: 'Heating and cooling' },
-      { id: 'drywall', name: 'Drywall', description: 'Drywall installation' },
-      { id: 'flooring', name: 'Flooring', description: 'Floor installation' },
-    ],
-  },
-  {
-    id: 'site',
-    name: 'Site Work',
-    description: 'Site preparation and landscaping',
-    children: [
-      { id: 'grading', name: 'Grading', description: 'Site grading' },
-      { id: 'paving', name: 'Paving', description: 'Paving and concrete' },
-      { id: 'landscaping', name: 'Landscaping', description: 'Landscaping' },
-    ],
-  },
-];
+export const LEVEL_NAMES: Record<number, string> = { 1: "工種", 2: "種別", 3: "細別" };
+export function getLevelName(level: number): string { return LEVEL_NAMES[level] || `レベル${level}`; }

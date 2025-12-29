@@ -102,8 +102,13 @@ export interface CreateAlbumInput {
   cover?: Partial<AlbumCover>;
 }
 
-// Alias for backwards compatibility
-export type CreateAlbumRequest = CreateAlbumInput;
+// API request for creating album (used by frontend)
+export interface CreateAlbumRequest {
+  projectId: string;
+  title: string;
+  description?: string;
+  cover?: Partial<AlbumCover>;
+}
 
 // Album update input
 export interface UpdateAlbumInput {
@@ -158,4 +163,21 @@ export interface AlbumApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+}
+
+// Export job status
+export type ExportJobStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+// Export job
+export interface ExportJob {
+  id: string;
+  albumId: string;
+  format: ExportFormat;
+  options: ExportOptions;
+  status: ExportJobStatus;
+  progress: number;
+  resultUrl?: string;
+  error?: string;
+  createdAt: Date;
+  completedAt?: Date;
 }

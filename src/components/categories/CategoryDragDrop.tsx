@@ -1,66 +1,43 @@
 "use client";
-
-import React, { useState } from "react";
+import React from "react";
 import {
   DndContext,
-  closestCenter,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-  DragOverlay,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  GripVertical,
-  Folder,
-  FolderOpen,
-  ChevronRight,
-  ChevronDown,
-  Image,
-} from "lucide-react";
+import { GripVertical, Folder, Image } from "lucide-react";
 import type { Category } from "@/types/category";
 
 interface CategoryDragDropProps {
   categories: Category[];
-  onReorder: (items: { id: string; sortOrder: number }[]) => Promise<void>;
-  expandedIds: Set<string>;
-  onToggleExpand: (id: string) => void;
+  onReorder: (categoryId: string, newIndex: number, parentId: string | null) => Promise<void>;
 }
 
-export function CategoryDragDrop({
-  categories,
-  onReorder,
-  expandedIds,
-  onToggleExpand,
-}: CategoryDragDropProps) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [items, setItems] = useState(categories);
-
-  // カテゴリが変更されたら同期
-  React.useEffect(() => {
-    setItems(categories);
-  }, [categories]);
+export function CategoryDragDrop({ categories, onReorder }: CategoryDragDropProps) {
+  const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [isReordering, setIsReordering] = React.useState(false);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  const activeCategory = activeId
+    ? findCategoryById(categories, activeId)
+    : null;
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -70,34 +47,28 @@ export function CategoryDragDrop({
     const { active, over } = event;
     setActiveId(null);
 
-    if (!over || active.id === over.id) {
-      return;
-    }
+    if (!over || active.id === over.id) return;
 
-    const oldIndex = items.findIndex((item) => item.id === active.id);
-    const newIndex = items.findIndex((item) => item.id === over.id);
+    const activeCategory = findCategoryById(categories, active.id as string);
+    const overCategory = findCategoryById(categories, over.id as string);
 
-    const newItems = arrayMove(items, oldIndex, newIndex);
-    setItems(newItems);
+    if (!activeCategory || !overCategory) return;
 
-    // APIに並び順を送信
-    const reorderData = newItems.map((item, index) => ({
-      id: item.id,
-      sortOrder: index,
-    }));
+    // Only allow reordering within same parent
+    if (activeCategory.parentId !== overCategory.parentId) return;
 
+    const siblings = getSiblings(categories, activeCategory.parentId);
+    const newIndex = siblings.findIndex((c) => c.id === over.id);
+
+    if (newIndex === -1) return;
+
+    setIsReordering(true);
     try {
-      await onReorder(reorderData);
-    } catch (error) {
-      // エラー時は元に戻す
-      setItems(categories);
-      console.error("Failed to reorder:", error);
+      await onReorder(active.id as string, newIndex, activeCategory.parentId);
+    } finally {
+      setIsReordering(false);
     }
   };
-
-  const activeItem = activeId
-    ? items.find((item) => item.id === activeId)
-    : null;
 
   return (
     <DndContext
@@ -106,28 +77,25 @@ export function CategoryDragDrop({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext
-        items={items.map((item) => item.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <div className="space-y-1">
-          {items.map((category) => (
+      <div className={`space-y-1 ${isReordering ? "opacity-50 pointer-events-none" : ""}`}>
+        <SortableContext
+          items={categories.map((c) => c.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {categories.map((category) => (
             <SortableItem
               key={category.id}
               category={category}
-              isExpanded={expandedIds.has(category.id)}
-              onToggleExpand={onToggleExpand}
               depth={0}
+              onReorder={onReorder}
             />
           ))}
-        </div>
-      </SortableContext>
+        </SortableContext>
+      </div>
 
       <DragOverlay>
-        {activeItem ? (
-          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-md border border-blue-500 opacity-90">
-            <DragOverlayItem category={activeItem} />
-          </div>
+        {activeCategory ? (
+          <DragOverlayItem category={activeCategory} />
         ) : null}
       </DragOverlay>
     </DndContext>
@@ -136,17 +104,11 @@ export function CategoryDragDrop({
 
 interface SortableItemProps {
   category: Category;
-  isExpanded: boolean;
-  onToggleExpand: (id: string) => void;
   depth: number;
+  onReorder: (categoryId: string, newIndex: number, parentId: string | null) => Promise<void>;
 }
 
-function SortableItem({
-  category,
-  isExpanded,
-  onToggleExpand,
-  depth,
-}: SortableItemProps) {
+function SortableItem({ category, depth, onReorder }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -159,7 +121,6 @@ function SortableItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
   };
 
   const hasChildren = category.children && category.children.length > 0;
@@ -168,63 +129,32 @@ function SortableItem({
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        className={`
-          flex items-center gap-2 px-2 py-1.5 rounded-md
-          bg-white dark:bg-gray-800
-          border border-transparent hover:border-gray-200 dark:hover:border-gray-700
-        `}
+        className={`flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 ${
+          isDragging ? "opacity-50 bg-blue-50" : ""
+        }`}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
-        {/* ドラッグハンドル */}
         <button
-          className="p-0.5 cursor-grab active:cursor-grabbing rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-1 rounded hover:bg-gray-200 cursor-grab active:cursor-grabbing"
           {...attributes}
           {...listeners}
         >
           <GripVertical className="w-4 h-4 text-gray-400" />
         </button>
 
-        {/* 展開/折りたたみボタン */}
-        <button
-          className={`p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
-            hasChildren ? "visible" : "invisible"
-          }`}
-          onClick={() => onToggleExpand(category.id)}
-        >
-          {isExpanded ? (
-            <ChevronDown className="w-4 h-4 text-gray-500" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-gray-500" />
-          )}
-        </button>
+        <Folder className="w-4 h-4 text-yellow-500" />
+        <span className="flex-1 text-sm truncate">{category.name}</span>
 
-        {/* フォルダアイコン */}
-        {isExpanded ? (
-          <FolderOpen className="w-4 h-4 text-yellow-500" />
-        ) : (
-          <Folder className="w-4 h-4 text-yellow-500" />
-        )}
-
-        {/* カテゴリ名 */}
-        <span className="flex-1 text-sm text-gray-900 dark:text-gray-100 truncate">
-          {category.name}
-        </span>
-
-        {/* コード */}
         {category.code && (
-          <span className="text-xs text-gray-500 font-mono">
-            {category.code}
-          </span>
+          <span className="text-xs text-gray-500 font-mono">{category.code}</span>
         )}
 
-        {/* 標準カテゴリバッジ */}
         {category.isStandard && (
           <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
             標準
           </span>
         )}
 
-        {/* 写真数 */}
         {photoCount > 0 && (
           <span className="flex items-center gap-1 text-xs text-gray-500">
             <Image className="w-3 h-3" />
@@ -233,50 +163,51 @@ function SortableItem({
         )}
       </div>
 
-      {/* 子カテゴリ（ドラッグ中は非表示） */}
-      {hasChildren && isExpanded && !isDragging && (
-        <div>
+      {hasChildren && (
+        <SortableContext
+          items={category.children!.map((c) => c.id)}
+          strategy={verticalListSortingStrategy}
+        >
           {category.children!.map((child) => (
             <SortableItem
               key={child.id}
               category={child}
-              isExpanded={false}
-              onToggleExpand={onToggleExpand}
               depth={depth + 1}
+              onReorder={onReorder}
             />
           ))}
-        </div>
+        </SortableContext>
       )}
     </div>
   );
 }
 
 function DragOverlayItem({ category }: { category: Category }) {
-  const photoCount = category._count?.photos ?? 0;
-
   return (
-    <div className="flex items-center gap-2 px-4 py-2">
+    <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-md shadow-lg border">
       <GripVertical className="w-4 h-4 text-gray-400" />
       <Folder className="w-4 h-4 text-yellow-500" />
-      <span className="text-sm text-gray-900 dark:text-gray-100">
-        {category.name}
-      </span>
+      <span className="text-sm">{category.name}</span>
       {category.code && (
-        <span className="text-xs text-gray-500 font-mono">
-          {category.code}
-        </span>
-      )}
-      {category.isStandard && (
-        <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
-          標準
-        </span>
-      )}
-      {photoCount > 0 && (
-        <span className="flex items-center gap-1 text-xs text-gray-500">
-          <Image className="w-3 h-3" />
-          {photoCount}
-        </span>
+        <span className="text-xs text-gray-500 font-mono">{category.code}</span>
       )}
     </div>
   );
+}
+
+function findCategoryById(categories: Category[], id: string): Category | null {
+  for (const category of categories) {
+    if (category.id === id) return category;
+    if (category.children) {
+      const found = findCategoryById(category.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function getSiblings(categories: Category[], parentId: string | null): Category[] {
+  if (parentId === null) return categories;
+  const parent = findCategoryById(categories, parentId);
+  return parent?.children || [];
 }

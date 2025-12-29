@@ -182,10 +182,10 @@ export const PhotoGrid = memo<PhotoGridProps>(function PhotoGrid({
           />
         </svg>
         <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-          写真がありません
+          No photos
         </h3>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          写真をアップロードして始めましょう
+          Upload photos to get started
         </p>
       </div>
     );

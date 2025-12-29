@@ -1,7 +1,3 @@
-/**
- * フィールドコンポーネントのエクスポート
- */
-
 export { TextField } from './TextField'
 export { DateField } from './DateField'
 export { NumberField } from './NumberField'

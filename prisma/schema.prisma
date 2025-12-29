@@ -10,9 +10,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
+// =============================================================================
 // NextAuth.js Required Models
-// ============================================
+// =============================================================================
 
 model Account {
   id                String  @id @default(cuid())
@@ -31,7 +31,6 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@index([userId])
   @@map("accounts")
 }
 
@@ -43,7 +42,6 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@map("sessions")
 }
 
@@ -56,9 +54,51 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// ============================================
-// Enums
-// ============================================
+// =============================================================================
+// Organization & User Management
+// =============================================================================
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(200)
+  slug      String   @unique @db.VarChar(100)
+  plan      PlanType @default(FREE)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members             OrganizationMember[]
+  projects            Project[]
+  blackboardTemplates BlackboardTemplate[]
+
+  @@map("organizations")
+}
+
+enum PlanType {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique @db.VarChar(255)
+  name          String?   @db.VarChar(100)
+  password      String?   @db.Text
+  image         String?   @db.Text
+  emailVerified DateTime? @map("email_verified")
+  role          Role      @default(MEMBER)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts                Account[]
+  sessions                Session[]
+  organizationMemberships OrganizationMember[]
+  projectMemberships      ProjectMember[]
+  photosCreated           Photo[]
+
+  @@map("users")
+}
 
 enum Role {
   ADMIN
@@ -67,220 +107,240 @@ enum Role {
   VIEWER
 }
 
-enum ProjectStatus {
-  DRAFT
-  ACTIVE
-  COMPLETED
-  ARCHIVED
+model OrganizationMember {
+  id             String           @id @default(cuid())
+  organizationId String           @map("organization_id")
+  userId         String           @map("user_id")
+  role           OrganizationRole @default(MEMBER)
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("organization_members")
 }
 
-enum AlbumStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
 }
 
-// ============================================
-// User Management Models
-// ============================================
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime? @map("email_verified")
-  password      String?
-  image         String?
-  role          Role      @default(MEMBER)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  accounts       Account[]
-  sessions       Session[]
-  uploadedPhotos Photo[]   @relation("UploadedPhotos")
-  createdAlbums  Album[]   @relation("CreatedAlbums")
-
-  @@index([email])
-  @@index([role])
-  @@map("users")
-}
-
-// ============================================
-// Project Management Models
-// ============================================
+// =============================================================================
+// Project Management
+// =============================================================================
 
 model Project {
-  id          String        @id @default(cuid())
-  name        String
-  code        String?       @unique // Project code (e.g., "PRJ-2024-001")
-  description String?       @db.Text
-  status      ProjectStatus @default(ACTIVE)
-  clientName  String?       @map("client_name")
-  location    String?
-  startDate   DateTime?     @map("start_date")
-  endDate     DateTime?     @map("end_date")
-  metadata    Json? // Additional project metadata
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  id             String        @id @default(cuid())
+  organizationId String        @map("organization_id")
+  name           String        @db.VarChar(200)
+  code           String?       @unique @db.VarChar(50)
+  description    String?       @db.Text
+  clientName     String?       @map("client_name") @db.VarChar(200)
+  contractorName String?       @map("contractor_name") @db.VarChar(200)
+  location       String?       @db.Text
+  startDate      DateTime?     @map("start_date") @db.Date
+  endDate        DateTime?     @map("end_date") @db.Date
+  status         ProjectStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
 
-  photos     Photo[]
-  categories Category[]
-  albums     Album[]
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      ProjectMember[]
+  categories   Category[]
+  photos       Photo[]
+  blackboards  Blackboard[]
+  albums       Album[]
 
+  @@index([organizationId])
   @@index([status])
-  @@index([name])
-  @@index([code])
-  @@index([createdAt])
   @@map("projects")
 }
 
-// ============================================
-// Category Management Models (Construction Photo Categories)
-// ============================================
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+  SUSPENDED
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String      @map("project_id")
+  userId    String      @map("user_id")
+  role      ProjectRole @default(MEMBER)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+enum ProjectRole {
+  MANAGER
+  MEMBER
+  VIEWER
+}
+
+// =============================================================================
+// Category Management (Construction Types/Classifications)
+// =============================================================================
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String
-  code        String? // Category code (e.g., "A-01", "B-02")
-  description String?  @db.Text
-  level       Int      @default(0) // Hierarchy level: 0=root, 1=child, etc.
-  parentId    String?  @map("parent_id")
-  projectId   String?  @map("project_id")
-  isStandard  Boolean  @default(false) @map("is_standard") // Standard category template
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String       @id @default(cuid())
+  projectId  String       @map("project_id")
+  parentId   String?      @map("parent_id")
+  name       String       @db.VarChar(200)
+  type       CategoryType @default(CATEGORY)
+  code       String?      @db.VarChar(20)
+  sortOrder  Int          @default(0) @map("sort_order")
+  isStandard Boolean      @default(false) @map("is_standard")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
 
-  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children Category[] @relation("CategoryHierarchy")
-  project  Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   photos   Photo[]
 
-  @@unique([projectId, code]) // Unique code within project
-  @@index([parentId])
   @@index([projectId])
-  @@index([level])
-  @@index([isStandard])
+  @@index([parentId])
   @@index([sortOrder])
   @@map("categories")
 }
 
-// ============================================
-// Photo Management Models
-// ============================================
+enum CategoryType {
+  CONSTRUCTION_TYPE
+  CATEGORY
+  SUBCATEGORY
+}
+
+// =============================================================================
+// Photo Management
+// =============================================================================
 
 model Photo {
-  id           String    @id @default(cuid())
-  title        String
-  description  String?   @db.Text
-  url          String // Original image URL
-  thumbnailUrl String?   @map("thumbnail_url")
-  mediumUrl    String?   @map("medium_url") // Medium-sized image for display
-  filename     String
-  originalName String?   @map("original_name") // Original filename from upload
-  mimeType     String    @map("mime_type")
-  fileSize     Int       @map("file_size") // Size in bytes
-  width        Int?
-  height       Int?
-  location     String? // Location description
-  takenAt      DateTime? @map("taken_at")
-  latitude     Float?
-  longitude    Float?
-  exifData     Json?     @map("exif_data") // EXIF metadata
-  projectId    String?   @map("project_id")
-  categoryId   String?   @map("category_id")
-  uploadedBy   String    @map("uploaded_by")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id            String    @id @default(cuid())
+  projectId     String    @map("project_id")
+  categoryId    String?   @map("category_id")
+  createdById   String    @map("created_by")
+  title         String?   @db.VarChar(200)
+  description   String?   @db.Text
+  filename      String    @db.VarChar(255)
+  originalName  String    @map("original_name") @db.VarChar(255)
+  filePath      String    @map("file_path") @db.Text
+  thumbnailPath String?   @map("thumbnail_path") @db.Text
+  fileSize      BigInt    @map("file_size")
+  mimeType      String    @map("mime_type") @db.VarChar(50)
+  width         Int?
+  height        Int?
+  takenAt       DateTime? @map("taken_at")
+  latitude      Float?
+  longitude     Float?
+  cameraModel   String?   @map("camera_model") @db.VarChar(100)
+  exifData      Json?     @map("exif_data") @db.JsonB
+  blackboardId  String?   @map("blackboard_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
 
-  project    Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  category   Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  uploader   User         @relation("UploadedPhotos", fields: [uploadedBy], references: [id])
-  albumItems AlbumPhoto[]
-  blackboard Blackboard?
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  blackboard  Blackboard?  @relation(fields: [blackboardId], references: [id], onDelete: SetNull)
+  albumPhotos AlbumPhoto[]
 
   @@index([projectId])
   @@index([categoryId])
-  @@index([uploadedBy])
+  @@index([createdById])
+  @@index([blackboardId])
   @@index([takenAt])
   @@index([createdAt])
-  @@index([projectId, categoryId])
-  @@index([projectId, takenAt])
+  @@index([deletedAt])
   @@map("photos")
 }
 
-// ============================================
-// Blackboard Models (Construction Site Blackboard)
-// ============================================
+// =============================================================================
+// Blackboard (Electronic Blackboard) Management
+// =============================================================================
+
+model BlackboardTemplate {
+  id             String   @id @default(cuid())
+  organizationId String   @map("organization_id")
+  name           String   @db.VarChar(100)
+  fields         Json     @db.JsonB
+  isDefault      Boolean  @default(false) @map("is_default")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  blackboards  Blackboard[]
+
+  @@index([organizationId])
+  @@map("blackboard_templates")
+}
 
 model Blackboard {
-  id               String    @id @default(cuid())
-  photoId          String    @unique @map("photo_id")
-  constructionName String?   @map("construction_name") // Project/construction name
-  contractor       String? // Contractor name
-  workType         String?   @map("work_type") // Type of work
-  workLocation     String?   @map("work_location") // Specific location
-  workDetail       String?   @map("work_detail") @db.Text // Work details
-  measurementData  Json?     @map("measurement_data") // Measurements (length, width, depth, etc.)
-  date             DateTime? // Date shown on blackboard
-  weather          String? // Weather condition
-  personnel        String? // Workers present
-  remarks          String?   @db.Text // Additional remarks
-  templateType     String?   @map("template_type") // Blackboard template type
-  rawData          Json?     @map("raw_data") // Raw OCR/parsed data
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
+  id         String             @id @default(cuid())
+  projectId  String             @map("project_id")
+  templateId String?            @map("template_id")
+  content    Json               @db.JsonB
+  position   BlackboardPosition @default(BOTTOM_RIGHT)
+  size       Int                @default(30)
+  createdAt  DateTime           @default(now()) @map("created_at")
+  updatedAt  DateTime           @updatedAt @map("updated_at")
 
-  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  project  Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  template BlackboardTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  photos   Photo[]
 
-  @@index([date])
-  @@index([workType])
-  @@index([contractor])
+  @@index([projectId])
+  @@index([templateId])
   @@map("blackboards")
 }
 
-// ============================================
-// Album Management Models
-// ============================================
+enum BlackboardPosition {
+  TOP_LEFT
+  TOP_RIGHT
+  BOTTOM_LEFT
+  BOTTOM_RIGHT
+}
+
+// =============================================================================
+// Album Management
+// =============================================================================
 
 model Album {
-  id             String      @id @default(cuid())
-  title          String
-  name           String // Display name
-  description    String?     @db.Text
-  projectId      String?     @map("project_id")
-  coverPhotoId   String?     @map("cover_photo_id")
-  status         AlbumStatus @default(DRAFT)
-  exportOptions  Json?       @map("export_options") // PDF/print export settings
-  cover          Json? // Cover page design settings
-  pageLayout     Json?       @map("page_layout") // Page layout settings
-  createdBy      String      @map("created_by")
-  lastExportedAt DateTime?   @map("last_exported_at")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
+  id          String   @id @default(cuid())
+  projectId   String   @map("project_id")
+  name        String   @db.VarChar(200)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  project Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  creator User         @relation("CreatedAlbums", fields: [createdBy], references: [id])
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   photos  AlbumPhoto[]
 
   @@index([projectId])
-  @@index([createdBy])
-  @@index([status])
-  @@index([createdAt])
   @@map("albums")
 }
 
 model AlbumPhoto {
-  id          String   @id @default(cuid())
-  albumId     String   @map("album_id")
-  photoId     String   @map("photo_id")
-  pageNumber  Int?     @map("page_number") // Page number in album
-  sortOrder   Int      @default(0) @map("sort_order")
-  customTitle String?  @map("custom_title")
-  caption     String?  @db.Text // Photo caption in album
-  layout      Json? // Individual photo layout settings
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(cuid())
+  albumId   String   @map("album_id")
+  photoId   String   @map("photo_id")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
 
   album Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
   photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
@@ -288,7 +348,6 @@ model AlbumPhoto {
   @@unique([albumId, photoId])
   @@index([albumId])
   @@index([photoId])
-  @@index([albumId, sortOrder])
-  @@index([albumId, pageNumber])
+  @@index([sortOrder])
   @@map("album_photos")
 }

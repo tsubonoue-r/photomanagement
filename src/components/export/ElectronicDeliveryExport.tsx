@@ -2,7 +2,7 @@
 
 /**
  * 電子納品エクスポートUIコンポーネント
- * 国土交通省 デジタル写真管理情報基準 準拠のエクスポート機能
+ * 国土交通省 デジタル写真管理情報基準 準拠
  */
 
 import React, { useState, useCallback } from "react";
@@ -12,19 +12,11 @@ import type {
   ExportResult,
   ProjectPhoto,
   ExportMetadata,
-  PhotoCategory,
-  PhotoMajorCategory,
 } from "@/types/electronic-delivery";
 
-/**
- * エクスポートUIのProps
- */
 interface ElectronicDeliveryExportProps {
-  /** プロジェクトID */
   projectId: string;
-  /** プロジェクト写真一覧 */
   photos: ProjectPhoto[];
-  /** プロジェクト情報 */
   projectInfo?: {
     constructionName: string;
     contractorName: string;
@@ -32,15 +24,10 @@ interface ElectronicDeliveryExportProps {
     startDate?: string;
     endDate?: string;
   };
-  /** エクスポート完了時のコールバック */
   onExportComplete?: (result: ExportResult) => void;
-  /** キャンセル時のコールバック */
   onCancel?: () => void;
 }
 
-/**
- * エクスポート設定フォームの状態
- */
 interface ExportFormState {
   outputFormat: "zip" | "folder";
   standardVersion: string;
@@ -54,19 +41,11 @@ interface ExportFormState {
   compressionEnabled: boolean;
 }
 
-/**
- * 利用可能な基準バージョン
- */
 const STANDARD_VERSIONS = [
   { value: "令和5年3月", label: "令和5年3月版" },
   { value: "令和4年3月", label: "令和4年3月版" },
-  { value: "令和3年3月", label: "令和3年3月版" },
-  { value: "平成31年3月", label: "平成31年3月版" },
 ];
 
-/**
- * 電子納品エクスポートコンポーネント
- */
 export function ElectronicDeliveryExport({
   projectId,
   photos,
@@ -74,7 +53,6 @@ export function ElectronicDeliveryExport({
   onExportComplete,
   onCancel,
 }: ElectronicDeliveryExportProps) {
-  // フォーム状態
   const [formState, setFormState] = useState<ExportFormState>({
     outputFormat: "zip",
     standardVersion: "令和5年3月",
@@ -88,15 +66,11 @@ export function ElectronicDeliveryExport({
     compressionEnabled: false,
   });
 
-  // エクスポート状態
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState<ExportProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ExportResult | null>(null);
 
-  /**
-   * フォーム入力ハンドラー
-   */
   const handleInputChange = useCallback(
     (field: keyof ExportFormState, value: string | number | boolean | string[]) => {
       setFormState((prev) => ({ ...prev, [field]: value }));
@@ -104,9 +78,6 @@ export function ElectronicDeliveryExport({
     []
   );
 
-  /**
-   * 写真選択ハンドラー
-   */
   const handlePhotoSelection = useCallback(
     (photoId: string, selected: boolean) => {
       setFormState((prev) => ({
@@ -119,9 +90,6 @@ export function ElectronicDeliveryExport({
     []
   );
 
-  /**
-   * 全選択/全解除
-   */
   const handleSelectAll = useCallback(
     (selectAll: boolean) => {
       setFormState((prev) => ({
@@ -132,9 +100,6 @@ export function ElectronicDeliveryExport({
     [photos]
   );
 
-  /**
-   * エクスポート実行
-   */
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     setError(null);
@@ -156,35 +121,22 @@ export function ElectronicDeliveryExport({
         constructionEndDate: formState.endDate || undefined,
       };
 
-      const config: ExportConfig = {
-        projectId,
-        outputFormat: formState.outputFormat,
-        standardVersion: formState.standardVersion,
-        photoQuality: {
-          jpegQuality: formState.jpegQuality,
-          compressionEnabled: formState.compressionEnabled,
-        },
-        photoIds:
-          formState.selectedPhotoIds.length === photos.length
-            ? undefined
-            : formState.selectedPhotoIds,
-        metadata,
-      };
-
-      // API呼び出し
       const response = await fetch(
-        `/api/projects/${projectId}/export/electronic-delivery`,
+        "/api/projects/" + projectId + "/export/electronic-delivery",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             config: {
-              outputFormat: config.outputFormat,
-              standardVersion: config.standardVersion,
-              photoQuality: config.photoQuality,
-              photoIds: config.photoIds,
+              outputFormat: formState.outputFormat,
+              standardVersion: formState.standardVersion,
+              photoQuality: {
+                jpegQuality: formState.jpegQuality,
+                compressionEnabled: formState.compressionEnabled,
+              },
+              photoIds: formState.selectedPhotoIds.length === photos.length
+                ? undefined
+                : formState.selectedPhotoIds,
             },
             metadata,
             photos: photos.filter((p) =>
@@ -200,7 +152,6 @@ export function ElectronicDeliveryExport({
         throw new Error(data.error || "エクスポートに失敗しました");
       }
 
-      // 成功
       const exportResult: ExportResult = {
         success: true,
         validationResult: data.data.validationResult,
@@ -220,11 +171,6 @@ export function ElectronicDeliveryExport({
       if (onExportComplete) {
         onExportComplete(exportResult);
       }
-
-      // ZIPダウンロード処理（クライアントサイド）
-      if (formState.outputFormat === "zip") {
-        await downloadAsZip(data.data, formState.constructionName);
-      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "エクスポート中にエラーが発生しました";
@@ -242,28 +188,6 @@ export function ElectronicDeliveryExport({
     }
   }, [formState, projectId, photos, onExportComplete]);
 
-  /**
-   * ZIPダウンロード処理
-   */
-  const downloadAsZip = async (
-    data: { photoXml: string; folderStructure: Record<string, unknown> },
-    constructionName: string
-  ) => {
-    // PHOTO.XMLをダウンロード（簡易実装）
-    const blob = new Blob([data.photoXml], { type: "application/xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${constructionName}_PHOTO.XML`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  /**
-   * 進捗表示テキスト
-   */
   const getProgressText = (step: ExportProgress["currentStep"]): string => {
     const texts: Record<ExportProgress["currentStep"], string> = {
       preparing: "準備中...",
@@ -284,14 +208,12 @@ export function ElectronicDeliveryExport({
         電子納品エクスポート
       </h2>
 
-      {/* エラー表示 */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
           <p className="text-red-700 dark:text-red-300">{error}</p>
         </div>
       )}
 
-      {/* 進捗表示 */}
       {isExporting && progress && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
           <div className="flex items-center justify-between mb-2">
@@ -305,16 +227,12 @@ export function ElectronicDeliveryExport({
           <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress.progressPercent}%` }}
+              style={{ width: progress.progressPercent + "%" }}
             />
           </div>
-          <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
-            {progress.processedFiles} / {progress.totalFiles} ファイル処理済み
-          </p>
         </div>
       )}
 
-      {/* 成功表示 */}
       {result?.success && (
         <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
           <p className="text-green-700 dark:text-green-300">
@@ -323,9 +241,7 @@ export function ElectronicDeliveryExport({
         </div>
       )}
 
-      {/* 設定フォーム */}
       <div className="space-y-6">
-        {/* 基本設定 */}
         <section>
           <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">
             基本設定
@@ -338,10 +254,7 @@ export function ElectronicDeliveryExport({
               <select
                 value={formState.outputFormat}
                 onChange={(e) =>
-                  handleInputChange(
-                    "outputFormat",
-                    e.target.value as "zip" | "folder"
-                  )
+                  handleInputChange("outputFormat", e.target.value as "zip" | "folder")
                 }
                 className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                 disabled={isExporting}
@@ -372,7 +285,6 @@ export function ElectronicDeliveryExport({
           </div>
         </section>
 
-        {/* メタデータ */}
         <section>
           <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">
             工事情報
@@ -422,79 +334,9 @@ export function ElectronicDeliveryExport({
                 disabled={isExporting}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                工期開始日
-              </label>
-              <input
-                type="date"
-                value={formState.startDate}
-                onChange={(e) =>
-                  handleInputChange("startDate", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                disabled={isExporting}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                工期終了日
-              </label>
-              <input
-                type="date"
-                value={formState.endDate}
-                onChange={(e) => handleInputChange("endDate", e.target.value)}
-                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                disabled={isExporting}
-              />
-            </div>
           </div>
         </section>
 
-        {/* 写真品質設定 */}
-        <section>
-          <h3 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">
-            写真品質設定
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                JPEG品質 ({formState.jpegQuality}%)
-              </label>
-              <input
-                type="range"
-                min="50"
-                max="100"
-                value={formState.jpegQuality}
-                onChange={(e) =>
-                  handleInputChange("jpegQuality", parseInt(e.target.value))
-                }
-                className="w-full"
-                disabled={isExporting}
-              />
-            </div>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="compressionEnabled"
-                checked={formState.compressionEnabled}
-                onChange={(e) =>
-                  handleInputChange("compressionEnabled", e.target.checked)
-                }
-                className="mr-2"
-                disabled={isExporting}
-              />
-              <label
-                htmlFor="compressionEnabled"
-                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                画像圧縮を有効にする
-              </label>
-            </div>
-          </div>
-        </section>
-
-        {/* 写真選択 */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
@@ -556,7 +398,6 @@ export function ElectronicDeliveryExport({
           </div>
         </section>
 
-        {/* アクションボタン */}
         <div className="flex justify-end space-x-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
           {onCancel && (
             <button
