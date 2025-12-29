@@ -54,6 +54,17 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([email, token])
+  @@map("password_reset_tokens")
+}
+
 // ============================================
 // User Management Models
 // ============================================
@@ -76,8 +87,48 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  accounts Account[]
-  sessions Session[]
+  accounts        Account[]
+  sessions        Session[]
+  projectMembers  ProjectMember[]
 
   @@map("users")
+}
+
+// ============================================
+// Project Access Control Models
+// ============================================
+
+enum ProjectRole {
+  OWNER   // Project owner - full control
+  ADMIN   // Project admin - manage members
+  MEMBER  // Team member - upload photos
+  VIEWER  // Read-only access
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  code        String?  @unique
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members ProjectMember[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String      @map("project_id")
+  userId    String      @map("user_id")
+  role      ProjectRole @default(MEMBER)
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
 }
