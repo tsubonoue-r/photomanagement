@@ -318,12 +318,36 @@ export function useInfinitePhotos(
   );
 
   /**
-   * Reorder photos locally (for drag and drop)
+   * Reorder photos locally and persist to server
    */
-  const reorderPhotos = useCallback((newPhotos: Photo[]) => {
-    setPhotos(newPhotos);
-    // TODO: Optionally sync reorder to server
-  }, []);
+  const reorderPhotos = useCallback(
+    async (newPhotos: Photo[]) => {
+      setPhotos(newPhotos);
+
+      // Persist reorder to server
+      if (projectId && newPhotos.length > 0) {
+        try {
+          const response = await fetch('/api/photos/reorder', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              projectId,
+              photoIds: newPhotos.map((p) => p.id),
+            }),
+          });
+
+          if (!response.ok) {
+            console.error('Failed to persist photo reorder');
+          }
+        } catch (error) {
+          console.error('Error persisting photo reorder:', error);
+        }
+      }
+    },
+    [projectId]
+  );
 
   /**
    * Refresh the current photos list

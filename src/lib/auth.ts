@@ -4,12 +4,15 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from './prisma';
+import { verifyToken, verifyRecoveryCode, removeRecoveryCode } from './two-factor';
 import type { Role } from '@prisma/client';
 
 // Validation schema for credentials
 const credentialsSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  twoFactorCode: z.string().optional(),
+  isRecoveryCode: z.string().optional(),
 });
 
 export const authConfig: NextAuthConfig = {
@@ -30,6 +33,8 @@ export const authConfig: NextAuthConfig = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        twoFactorCode: { label: '2FA Code', type: 'text' },
+        isRecoveryCode: { label: 'Is Recovery Code', type: 'text' },
       },
       async authorize(credentials) {
         // Validate credentials
@@ -38,11 +43,22 @@ export const authConfig: NextAuthConfig = {
           return null;
         }
 
-        const { email, password } = validatedCredentials.data;
+        const { email, password, twoFactorCode, isRecoveryCode } = validatedCredentials.data;
 
         // Find user by email
         const user = await prisma.user.findUnique({
           where: { email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            role: true,
+            password: true,
+            twoFactorEnabled: true,
+            twoFactorSecret: true,
+            recoveryCodes: true,
+          },
         });
 
         if (!user || !user.password) {
@@ -53,6 +69,36 @@ export const authConfig: NextAuthConfig = {
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
           return null;
+        }
+
+        // Check if 2FA is enabled
+        if (user.twoFactorEnabled && user.twoFactorSecret) {
+          // If no 2FA code provided, throw error to indicate 2FA is required
+          if (!twoFactorCode) {
+            throw new Error('2FA_REQUIRED:' + user.id);
+          }
+
+          // Verify 2FA code
+          const useRecoveryCode = isRecoveryCode === 'true';
+          let isValid = false;
+
+          if (useRecoveryCode) {
+            isValid = verifyRecoveryCode(twoFactorCode, user.recoveryCodes);
+            if (isValid) {
+              // Remove used recovery code
+              const updatedCodes = removeRecoveryCode(twoFactorCode, user.recoveryCodes);
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { recoveryCodes: updatedCodes },
+              });
+            }
+          } else {
+            isValid = verifyToken(twoFactorCode, user.twoFactorSecret);
+          }
+
+          if (!isValid) {
+            throw new Error('INVALID_2FA_CODE');
+          }
         }
 
         return {

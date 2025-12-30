@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, User, Lock, Bell, Palette, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, User, Lock, Shield, Bell, Palette, AlertTriangle } from 'lucide-react';
 import {
   ProfileSection,
   PasswordSection,
+  TwoFactorSection,
   NotificationSection,
   DisplaySection,
   DeleteAccountSection,
@@ -49,6 +50,12 @@ export function SettingsClient({ user, notifications }: SettingsClientProps) {
       description: 'Change your password',
     },
     {
+      id: 'security' as const,
+      label: 'Security',
+      icon: Shield,
+      description: 'Two-factor authentication',
+    },
+    {
       id: 'notifications' as const,
       label: 'Notifications',
       icon: Bell,
@@ -81,6 +88,8 @@ export function SettingsClient({ user, notifications }: SettingsClientProps) {
         );
       case 'password':
         return <PasswordSection />;
+      case 'security':
+        return <TwoFactorSection />;
       case 'notifications':
         return (
           <NotificationSection userId={user.id} initialSettings={notifications} />
