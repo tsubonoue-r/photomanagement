@@ -166,18 +166,15 @@ test.describe('Authentication Flow', () => {
 
       await expect(page).toHaveURL(/\/(dashboard|organizations|settings)/, { timeout: 15000 });
 
-      // User info should be visible in header or menu
-      const userInfo = page.getByText(new RegExp(TEST_USER.email + '|' + TEST_USER.name, 'i'));
-      const isVisible = await userInfo.isVisible().catch(() => false);
+      // User info should be visible - check for welcome message or user button
+      const welcomeMessage = page.getByText(/welcome.*back/i);
+      const userButton = page.getByRole('button', { name: new RegExp(TEST_USER.name, 'i') });
 
-      // User info might be in dropdown menu
-      if (!isVisible) {
-        const userMenu = page.locator('[data-testid="user-menu"]').or(page.getByRole('button', { name: /account|user|profile/i }));
-        if (await userMenu.isVisible()) {
-          await userMenu.click();
-          await expect(page.getByText(new RegExp(TEST_USER.email + '|' + TEST_USER.name, 'i'))).toBeVisible();
-        }
-      }
+      // Either welcome message or user button with name should be visible
+      const hasWelcome = await welcomeMessage.isVisible().catch(() => false);
+      const hasUserButton = await userButton.isVisible().catch(() => false);
+
+      expect(hasWelcome || hasUserButton).toBeTruthy();
     });
 
     test('should logout successfully', async ({ page }) => {

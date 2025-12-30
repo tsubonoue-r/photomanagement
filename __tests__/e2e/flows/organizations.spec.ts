@@ -57,17 +57,30 @@ test.describe('Organization Management', () => {
       await login(page);
       await page.goto('/organizations');
 
-      const createButton = page.getByRole('button', { name: /create|new|add/i });
-      if (await createButton.isVisible()) {
-        await createButton.click();
+      // Click "New Organization" or "Create Organization" button to open modal
+      const newOrgButton = page.getByRole('button', { name: /new organization/i });
+      const createOrgButton = page.getByRole('button', { name: /create organization/i });
 
-        // Try to submit with empty name
-        const submitButton = page.getByRole('button', { name: /create|submit|save/i });
-        if (await submitButton.isVisible()) {
-          await submitButton.click();
-          // Validation error should appear
-          await page.waitForTimeout(500);
-        }
+      if (await newOrgButton.isVisible()) {
+        await newOrgButton.click();
+      } else if (await createOrgButton.isVisible()) {
+        await createOrgButton.click();
+      }
+
+      // Wait for modal to appear
+      await page.waitForTimeout(500);
+
+      // The submit button should be disabled when name is empty (this IS the validation)
+      const submitButton = page.locator('button:has-text("Create Organization")').last();
+      await expect(submitButton).toBeDisabled();
+
+      // Fill in organization name
+      const nameField = page.getByPlaceholder('My Organization');
+      if (await nameField.isVisible()) {
+        await nameField.fill('Test Organization');
+
+        // Button should now be enabled
+        await expect(submitButton).toBeEnabled();
       }
     });
 
