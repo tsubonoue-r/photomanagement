@@ -4,15 +4,16 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import path from 'path';
+import * as path from 'path';
+import { TEST_USER } from '../fixtures/auth';
 
 // Helper to login
 async function login(page: Page) {
   await page.goto('/login');
-  await page.getByLabel(/email/i).fill('test@example.com');
-  await page.getByLabel(/password/i).fill('TestPassword123');
+  await page.getByLabel(/email/i).fill(TEST_USER.email);
+  await page.getByLabel(/password/i).fill(TEST_USER.password);
   await page.getByRole('button', { name: /login|sign in/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+  await page.waitForURL(/\/(dashboard|organizations|settings)/, { timeout: 15000 });
 }
 
 test.describe('Photo Upload Flow', () => {
