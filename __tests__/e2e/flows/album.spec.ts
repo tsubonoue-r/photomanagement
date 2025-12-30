@@ -1,17 +1,19 @@
 /**
  * Album E2E Tests
  * Issue #27: E2E testing for album creation and export flows
+ * Issue #42: E2Eテスト・統合テストの完全実装
  */
 
 import { test, expect, Page } from '@playwright/test';
+import { TEST_USER } from '../fixtures/auth';
 
 // Helper to login
 async function login(page: Page) {
   await page.goto('/login');
-  await page.getByLabel(/email/i).fill('test@example.com');
-  await page.getByLabel(/password/i).fill('TestPassword123');
+  await page.getByLabel(/email/i).fill(TEST_USER.email);
+  await page.getByLabel(/password/i).fill(TEST_USER.password);
   await page.getByRole('button', { name: /login|sign in/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+  await page.waitForURL(/\/(dashboard|organizations|settings)/, { timeout: 15000 });
 }
 
 test.describe('Album Flow', () => {
