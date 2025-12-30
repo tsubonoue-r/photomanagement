@@ -121,10 +121,10 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
   );
 
   // Handle photo reorder (drag and drop)
+  // Note: reorderPhotos now automatically persists to server via /api/photos/reorder
   const handleReorder = useCallback(
     (newPhotos: Photo[]) => {
       reorderPhotos(newPhotos);
-      // TODO: API call to persist reorder
     },
     [reorderPhotos]
   );

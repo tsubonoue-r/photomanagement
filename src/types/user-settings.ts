@@ -105,6 +105,7 @@ export interface UserSettings {
 export type SettingsSection =
   | 'profile'
   | 'password'
+  | 'security'
   | 'notifications'
   | 'display'
   | 'account';
