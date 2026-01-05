@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { MobileNav } from './MobileNav';
+import { BottomTabNavigator } from './BottomTabNavigator';
 import { Breadcrumb } from './Breadcrumb';
 
 interface DashboardShellProps {
@@ -26,16 +27,19 @@ export function DashboardShell({ children }: DashboardShellProps) {
       {/* Desktop Sidebar */}
       <Sidebar className="hidden lg:block" />
 
-      {/* Mobile Navigation */}
+      {/* Mobile Navigation Drawer */}
       <MobileNav isOpen={isMobileMenuOpen} onClose={handleMenuClose} />
+
+      {/* Mobile Bottom Tab Navigator */}
+      <BottomTabNavigator />
 
       {/* Main Content Area */}
       <div className="lg:ml-64">
         {/* Header */}
         <Header onMenuClick={handleMenuClick} />
 
-        {/* Page Content */}
-        <main className="p-4 lg:p-6">
+        {/* Page Content - Added bottom padding for mobile tab bar */}
+        <main className="p-4 lg:p-6 pb-24 lg:pb-6">
           {/* Breadcrumb */}
           <div className="mb-4">
             <Breadcrumb />
