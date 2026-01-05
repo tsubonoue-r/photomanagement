@@ -60,9 +60,9 @@ export default async function ProjectsPage() {
               </svg>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
+              <h1 className="text-2xl font-bold text-gray-900">プロジェクト</h1>
               <p className="text-sm text-gray-600">
-                Manage all your construction photo projects
+                工事写真プロジェクトの管理
               </p>
             </div>
           </div>

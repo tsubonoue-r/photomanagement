@@ -43,9 +43,9 @@ export default function NotFound() {
   };
 
   const quickLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/organizations', label: 'Organizations', icon: Building2 },
-    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/dashboard', label: 'ダッシュボード', icon: Home },
+    { href: '/organizations', label: '組織', icon: Building2 },
+    { href: '/settings', label: '設定', icon: Settings },
   ];
 
   return (
@@ -78,13 +78,13 @@ export default function NotFound() {
 
         {/* Title */}
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-          Page Not Found
+          ページが見つかりません
         </h1>
 
         {/* Description */}
         <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-          The page you&apos;re looking for doesn&apos;t exist or has been moved.
-          Try searching or use the links below.
+          お探しのページは存在しないか、移動された可能性があります。
+          検索するか、下のリンクをご利用ください。
         </p>
 
         {/* Search box */}
@@ -95,7 +95,7 @@ export default function NotFound() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for photos, projects..."
+              placeholder="写真やプロジェクトを検索..."
               className="
                 w-full pl-12 pr-4 py-3
                 bg-white dark:bg-gray-800
@@ -120,7 +120,7 @@ export default function NotFound() {
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
               "
             >
-              Search
+              検索
             </button>
           </div>
         </form>
@@ -141,7 +141,7 @@ export default function NotFound() {
             "
           >
             <Home className="w-5 h-5" />
-            Go to Home
+            ホームへ戻る
           </Link>
 
           <button
@@ -161,7 +161,7 @@ export default function NotFound() {
             "
           >
             <ArrowLeft className="w-5 h-5" />
-            Go Back
+            前のページへ
           </button>
         </div>
 
@@ -193,20 +193,20 @@ export default function NotFound() {
         {/* Additional helpful links */}
         <div className="pt-8 border-t border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            Or try these pages:
+            または以下のページをお試しください:
           </p>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
             <Link
               href="/login"
               className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
             >
-              Login
+              ログイン
             </Link>
             <Link
               href="/register"
               className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
             >
-              Register
+              新規登録
             </Link>
           </div>
         </div>

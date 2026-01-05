@@ -65,7 +65,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
     setError(null);
 
     if (!name.trim()) {
-      setError('Project name is required');
+      setError('プロジェクト名は必須です');
       return;
     }
 
@@ -96,12 +96,12 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to save project');
+        throw new Error(result.error || 'プロジェクトの保存に失敗しました');
       }
 
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save project');
+      setError(err instanceof Error ? err.message : 'プロジェクトの保存に失敗しました');
     } finally {
       setSaving(false);
     }
@@ -109,10 +109,10 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
 
   // Status options
   const statusOptions: { value: ProjectStatus; label: string }[] = [
-    { value: 'ACTIVE', label: 'Active' },
-    { value: 'COMPLETED', label: 'Completed' },
-    { value: 'ARCHIVED', label: 'Archived' },
-    { value: 'SUSPENDED', label: 'Suspended' },
+    { value: 'ACTIVE', label: '進行中' },
+    { value: 'COMPLETED', label: '完了' },
+    { value: 'ARCHIVED', label: 'アーカイブ' },
+    { value: 'SUSPENDED', label: '一時停止' },
   ];
 
   return (
@@ -129,7 +129,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b">
             <h2 className="text-lg font-semibold text-gray-900">
-              {isEditing ? 'Edit Project' : 'Create New Project'}
+              {isEditing ? 'プロジェクトを編集' : '新規プロジェクト作成'}
             </h2>
             <button
               onClick={onCancel}
@@ -151,20 +151,20 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
             {/* Basic Info Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
-                Basic Information
+                基本情報
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Project Name <span className="text-red-500">*</span>
+                    プロジェクト名 <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter project name"
+                    placeholder="プロジェクト名を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                     autoFocus
@@ -173,21 +173,21 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
 
                 <div>
                   <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
-                    Project Code
+                    プロジェクトコード
                   </label>
                   <input
                     type="text"
                     id="code"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    placeholder="e.g., PRJ-001"
+                    placeholder="例: PRJ-001"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
+                    ステータス
                   </label>
                   <select
                     id="status"
@@ -205,13 +205,13 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
 
                 <div className="md:col-span-2">
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
+                    説明
                   </label>
                   <textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Enter project description"
+                    placeholder="プロジェクトの説明を入力"
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -222,48 +222,48 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
             {/* Client Info Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
-                Client Information
+                発注者・施工者情報
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Client Name
+                    発注者名
                   </label>
                   <input
                     type="text"
                     id="clientName"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    placeholder="Enter client name"
+                    placeholder="発注者名を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="contractorName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Contractor Name
+                    施工者名
                   </label>
                   <input
                     type="text"
                     id="contractorName"
                     value={contractorName}
                     onChange={(e) => setContractorName(e.target.value)}
-                    placeholder="Enter contractor name"
+                    placeholder="施工者名を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div className="md:col-span-2">
                   <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                    Location
+                    工事場所
                   </label>
                   <input
                     type="text"
                     id="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Enter project location"
+                    placeholder="工事場所を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -273,13 +273,13 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
             {/* Schedule Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
-                Schedule
+                工期
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Date
+                    開始日
                   </label>
                   <input
                     type="date"
@@ -292,7 +292,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
 
                 <div>
                   <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date
+                    終了日
                   </label>
                   <input
                     type="date"
@@ -313,7 +313,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                 className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                 disabled={saving}
               >
-                Cancel
+                キャンセル
               </button>
               <button
                 type="submit"
@@ -321,7 +321,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                 disabled={saving || !name.trim()}
               >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                {saving ? 'Saving...' : isEditing ? 'Update Project' : 'Create Project'}
+                {saving ? '保存中...' : isEditing ? '更新' : '作成'}
               </button>
             </div>
           </form>

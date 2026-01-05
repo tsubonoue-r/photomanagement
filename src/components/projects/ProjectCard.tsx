@@ -90,7 +90,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                   onClick={() => setShowMenu(false)}
                 >
                   <Eye className="w-4 h-4" />
-                  View Project
+                  表示
                 </Link>
                 <button
                   onClick={() => {
@@ -100,7 +100,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                   className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
                   <Edit className="w-4 h-4" />
-                  Edit
+                  編集
                 </button>
                 <button
                   onClick={() => {
@@ -110,7 +110,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                   className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Delete
+                  削除
                 </button>
               </div>
             )}
@@ -142,7 +142,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                 {project._count.photos}
               </span>
             </div>
-            <span className="text-xs text-gray-500">Photos</span>
+            <span className="text-xs text-gray-500">写真</span>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-gray-500">
@@ -151,7 +151,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                 {project._count.albums}
               </span>
             </div>
-            <span className="text-xs text-gray-500">Albums</span>
+            <span className="text-xs text-gray-500">アルバム</span>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-gray-500">
@@ -160,7 +160,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                 {project._count.members}
               </span>
             </div>
-            <span className="text-xs text-gray-500">Members</span>
+            <span className="text-xs text-gray-500">メンバー</span>
           </div>
         </div>
       </div>
@@ -169,17 +169,17 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
       <div className="px-4 py-3 bg-gray-50 rounded-b-lg border-t border-gray-100">
         <div className="flex justify-between text-xs text-gray-500">
           <div>
-            <span className="font-medium">Start:</span> {formatDate(project.startDate)}
+            <span className="font-medium">開始:</span> {formatDate(project.startDate)}
           </div>
           <div>
-            <span className="font-medium">End:</span> {formatDate(project.endDate)}
+            <span className="font-medium">終了:</span> {formatDate(project.endDate)}
           </div>
         </div>
         {(project.clientName || project.contractorName) && (
           <div className="mt-2 text-xs text-gray-500 truncate">
-            {project.clientName && <span>Client: {project.clientName}</span>}
+            {project.clientName && <span>発注者: {project.clientName}</span>}
             {project.clientName && project.contractorName && <span> | </span>}
-            {project.contractorName && <span>Contractor: {project.contractorName}</span>}
+            {project.contractorName && <span>施工者: {project.contractorName}</span>}
           </div>
         )}
       </div>
