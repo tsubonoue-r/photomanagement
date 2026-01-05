@@ -23,3 +23,6 @@ export type {
   UseCameraOptions,
   UseCameraReturn,
 } from './useCamera';
+
+// Offline Photos Hook (Issue #81)
+export { useOfflinePhotos } from './useOfflinePhotos';

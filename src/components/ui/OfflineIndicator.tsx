@@ -143,12 +143,12 @@ export function OfflineIndicator({
           {/* Message */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
             <span className="font-medium">
-              {isOnline ? 'Back online!' : 'You are offline'}
+              {isOnline ? 'オンラインに復帰' : 'オフラインです'}
             </span>
             <span className="text-sm opacity-90">
               {isOnline
-                ? 'Your connection has been restored.'
-                : 'Check your internet connection and try again.'
+                ? '接続が復元されました。'
+                : 'インターネット接続を確認してください。'
               }
             </span>
           </div>
@@ -170,7 +170,7 @@ export function OfflineIndicator({
               aria-label="Retry connection"
             >
               <RefreshCw className="w-4 h-4" />
-              <span className="hidden sm:inline">Retry</span>
+              <span className="hidden sm:inline">再試行</span>
             </button>
           )}
 
