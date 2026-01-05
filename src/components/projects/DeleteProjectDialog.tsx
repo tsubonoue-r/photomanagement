@@ -32,7 +32,7 @@ export function DeleteProjectDialog({
 
   const handleDelete = async () => {
     if (hasAssociatedData && confirmText !== project.name) {
-      setError('Please type the project name to confirm deletion');
+      setError('削除を確認するためにプロジェクト名を入力してください');
       return;
     }
 
@@ -47,12 +47,12 @@ export function DeleteProjectDialog({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to delete project');
+        throw new Error(result.error || 'プロジェクトの削除に失敗しました');
       }
 
       onConfirm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete project');
+      setError(err instanceof Error ? err.message : 'プロジェクトの削除に失敗しました');
       setDeleting(false);
     }
   };
@@ -74,7 +74,7 @@ export function DeleteProjectDialog({
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-600" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900">Delete Project</h2>
+              <h2 className="text-lg font-semibold text-gray-900">プロジェクトを削除</h2>
             </div>
             <button
               onClick={onCancel}
@@ -87,29 +87,28 @@ export function DeleteProjectDialog({
           {/* Content */}
           <div className="px-6 py-4 space-y-4">
             <p className="text-gray-700">
-              Are you sure you want to delete{' '}
-              <span className="font-semibold">{project.name}</span>?
+              <span className="font-semibold">{project.name}</span> を削除してもよろしいですか？
             </p>
 
             {/* Warning about associated data */}
             {hasAssociatedData && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800 font-medium mb-2">
-                  This project contains:
+                  このプロジェクトには以下が含まれています:
                 </p>
                 <ul className="text-sm text-yellow-700 space-y-1">
                   {project._count.photos > 0 && (
-                    <li>- {project._count.photos} photo(s)</li>
+                    <li>- {project._count.photos} 枚の写真</li>
                   )}
                   {project._count.albums > 0 && (
-                    <li>- {project._count.albums} album(s)</li>
+                    <li>- {project._count.albums} 件のアルバム</li>
                   )}
                   {project._count.members > 0 && (
-                    <li>- {project._count.members} member(s)</li>
+                    <li>- {project._count.members} 人のメンバー</li>
                   )}
                 </ul>
                 <p className="text-sm text-yellow-800 mt-2">
-                  All associated data will be permanently deleted.
+                  関連するすべてのデータが完全に削除されます。
                 </p>
               </div>
             )}
@@ -118,13 +117,13 @@ export function DeleteProjectDialog({
             {hasAssociatedData && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type <span className="font-semibold">{project.name}</span> to confirm:
+                  削除を確認するには <span className="font-semibold">{project.name}</span> と入力してください:
                 </label>
                 <input
                   type="text"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
-                  placeholder="Project name"
+                  placeholder="プロジェクト名"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 />
               </div>
@@ -146,7 +145,7 @@ export function DeleteProjectDialog({
               className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
               disabled={deleting}
             >
-              Cancel
+              キャンセル
             </button>
             <button
               type="button"
@@ -155,7 +154,7 @@ export function DeleteProjectDialog({
               disabled={deleting || (hasAssociatedData && confirmText !== project.name)}
             >
               {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
-              {deleting ? 'Deleting...' : 'Delete Project'}
+              {deleting ? '削除中...' : '削除'}
             </button>
           </div>
         </div>

@@ -74,7 +74,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 {userInitials}
               </div>
               <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {session?.user?.name || 'User'}
+                {session?.user?.name || 'ユーザー'}
               </span>
               <ChevronDown className="hidden md:block h-4 w-4 text-gray-500 dark:text-gray-400" />
             </button>
@@ -83,7 +83,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {session?.user?.name || 'User'}
+                    {session?.user?.name || 'ユーザー'}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                     {session?.user?.email || ''}
@@ -98,7 +98,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
                     <User className="h-4 w-4" />
-                    Profile
+                    プロフィール
                   </button>
                 </div>
 
@@ -108,7 +108,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign out
+                    ログアウト
                   </button>
                 </div>
               </div>
