@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Camera,
   RefreshCw,
@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Loader2,
   AlertCircle,
+  Clipboard,
 } from 'lucide-react';
 import { useCamera, CapturedPhoto } from '@/hooks/useCamera';
 
@@ -16,9 +17,20 @@ interface CameraViewProps {
   onCapture?: (photo: CapturedPhoto) => void;
   onClose?: () => void;
   blackboardOverlay?: React.ReactNode;
+  showBlackboardToggle?: boolean;
+  isBlackboardVisible?: boolean;
+  onBlackboardToggle?: () => void;
 }
 
-export function CameraView({ onCapture, onClose, blackboardOverlay }: CameraViewProps) {
+export function CameraView({
+  onCapture,
+  onClose,
+  blackboardOverlay,
+  showBlackboardToggle = false,
+  isBlackboardVisible = false,
+  onBlackboardToggle,
+}: CameraViewProps) {
+  const cameraContainerRef = useRef<HTMLDivElement>(null);
   const {
     videoRef,
     canvasRef,
@@ -150,20 +162,35 @@ export function CameraView({ onCapture, onClose, blackboardOverlay }: CameraView
             <X className="w-6 h-6" />
           </button>
 
-          {hasMultipleCameras && (
-            <button
-              onClick={switchCamera}
-              disabled={isLoading}
-              className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {showBlackboardToggle && (
+              <button
+                onClick={onBlackboardToggle}
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors ${
+                  isBlackboardVisible
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-black/50 hover:bg-black/70'
+                }`}
+                title={isBlackboardVisible ? '黒板を非表示' : '黒板を表示'}
+              >
+                <Clipboard className="w-5 h-5" />
+              </button>
+            )}
+            {hasMultipleCameras && (
+              <button
+                onClick={switchCamera}
+                disabled={isLoading}
+                className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Camera Preview */}
-      <div className="flex-1 relative overflow-hidden">
+      <div ref={cameraContainerRef} className="flex-1 relative overflow-hidden">
         <video
           ref={videoRef}
           autoPlay
@@ -176,7 +203,7 @@ export function CameraView({ onCapture, onClose, blackboardOverlay }: CameraView
 
         {/* Blackboard Overlay */}
         {blackboardOverlay && (
-          <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0">
             {blackboardOverlay}
           </div>
         )}
