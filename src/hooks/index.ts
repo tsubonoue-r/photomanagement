@@ -13,3 +13,13 @@ export { useKeyboardShortcuts } from './useKeyboardShortcuts';
 
 // Enhanced Upload Hook (Issue #36)
 export { useUploadQueue } from './useUploadQueue';
+
+// Camera Hook (Issue #78)
+export { useCamera } from './useCamera';
+export type {
+  CameraFacingMode,
+  CameraSettings,
+  CapturedPhoto,
+  UseCameraOptions,
+  UseCameraReturn,
+} from './useCamera';
