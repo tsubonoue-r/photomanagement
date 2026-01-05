@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Camera, FolderOpen, FileText, Shield } from "lucide-react";
+import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   return (
@@ -83,14 +84,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto max-w-6xl px-6 py-8">
-          <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
-            © 2024 工程写真管理システム. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -9,6 +9,7 @@ interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  agreedToTerms?: string;
   general?: string;
 }
 
@@ -18,6 +19,7 @@ export default function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,6 +54,10 @@ export default function RegisterForm() {
       newErrors.confirmPassword = 'パスワード（確認）を入力してください';
     } else if (password !== confirmPassword) {
       newErrors.confirmPassword = 'パスワードが一致しません';
+    }
+
+    if (!agreedToTerms) {
+      newErrors.agreedToTerms = '利用規約とプライバシーポリシーに同意してください';
     }
 
     setErrors(newErrors);
@@ -203,6 +209,48 @@ export default function RegisterForm() {
             {errors.confirmPassword && (
               <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
             )}
+          </div>
+
+          <div>
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="agreedToTerms"
+                  name="agreedToTerms"
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                    errors.agreedToTerms ? 'border-red-300' : ''
+                  }`}
+                />
+              </div>
+              <div className="ml-3">
+                <label htmlFor="agreedToTerms" className="text-sm text-gray-700">
+                  <Link
+                    href="/legal/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-blue-600 hover:text-blue-500"
+                  >
+                    利用規約
+                  </Link>
+                  と
+                  <Link
+                    href="/legal/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-blue-600 hover:text-blue-500"
+                  >
+                    プライバシーポリシー
+                  </Link>
+                  に同意します
+                </label>
+                {errors.agreedToTerms && (
+                  <p className="mt-1 text-sm text-red-600">{errors.agreedToTerms}</p>
+                )}
+              </div>
+            </div>
           </div>
 
           <button
