@@ -25,33 +25,33 @@ export default function RegisterForm() {
     const newErrors: FormErrors = {};
 
     if (!name) {
-      newErrors.name = 'Name is required';
+      newErrors.name = '名前を入力してください';
     } else if (name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+      newErrors.name = '名前は2文字以上で入力してください';
     }
 
     if (!email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'メールアドレスを入力してください';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = '有効なメールアドレスを入力してください';
     }
 
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'パスワードを入力してください';
     } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = 'パスワードは8文字以上で入力してください';
     } else if (!/[A-Z]/.test(password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter';
+      newErrors.password = 'パスワードには大文字を1つ以上含めてください';
     } else if (!/[a-z]/.test(password)) {
-      newErrors.password = 'Password must contain at least one lowercase letter';
+      newErrors.password = 'パスワードには小文字を1つ以上含めてください';
     } else if (!/[0-9]/.test(password)) {
-      newErrors.password = 'Password must contain at least one number';
+      newErrors.password = 'パスワードには数字を1つ以上含めてください';
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = 'パスワード（確認）を入力してください';
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = 'パスワードが一致しません';
     }
 
     setErrors(newErrors);
@@ -86,11 +86,11 @@ export default function RegisterForm() {
 
       if (!response.ok) {
         if (response.status === 409) {
-          setErrors({ email: 'An account with this email already exists' });
+          setErrors({ email: 'このメールアドレスは既に登録されています' });
         } else if (data.details) {
           setErrors(data.details);
         } else {
-          setErrors({ general: data.error || 'Registration failed' });
+          setErrors({ general: data.error || '登録に失敗しました' });
         }
         return;
       }
@@ -98,7 +98,7 @@ export default function RegisterForm() {
       // Registration successful, redirect to login
       router.push('/login?registered=true');
     } catch {
-      setErrors({ general: 'An unexpected error occurred. Please try again.' });
+      setErrors({ general: '予期せぬエラーが発生しました。もう一度お試しください。' });
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +108,7 @@ export default function RegisterForm() {
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-lg shadow-md p-8">
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-          Create your account
+          アカウント作成
         </h2>
 
         {errors.general && (
@@ -120,7 +120,7 @@ export default function RegisterForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full name
+              氏名
             </label>
             <input
               id="name"
@@ -132,7 +132,7 @@ export default function RegisterForm() {
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.name ? 'border-red-300' : 'border-gray-300'
               }`}
-              placeholder="John Doe"
+              placeholder="山田 太郎"
             />
             {errors.name && (
               <p className="mt-1 text-sm text-red-600">{errors.name}</p>
@@ -141,7 +141,7 @@ export default function RegisterForm() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email address
+              メールアドレス
             </label>
             <input
               id="email"
@@ -153,7 +153,7 @@ export default function RegisterForm() {
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.email ? 'border-red-300' : 'border-gray-300'
               }`}
-              placeholder="you@example.com"
+              placeholder="example@example.com"
             />
             {errors.email && (
               <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -162,7 +162,7 @@ export default function RegisterForm() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+              パスワード
             </label>
             <input
               id="password"
@@ -174,19 +174,19 @@ export default function RegisterForm() {
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.password ? 'border-red-300' : 'border-gray-300'
               }`}
-              placeholder="Enter your password"
+              placeholder="パスワードを入力"
             />
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password}</p>
             )}
             <p className="mt-1 text-xs text-gray-500">
-              Must be at least 8 characters with uppercase, lowercase, and number
+              8文字以上、大文字・小文字・数字を含む必要があります
             </p>
           </div>
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm password
+              パスワード（確認）
             </label>
             <input
               id="confirmPassword"
@@ -198,7 +198,7 @@ export default function RegisterForm() {
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
               }`}
-              placeholder="Confirm your password"
+              placeholder="パスワードを再入力"
             />
             {errors.confirmPassword && (
               <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
@@ -218,19 +218,19 @@ export default function RegisterForm() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Creating account...
+                アカウント作成中...
               </span>
             ) : (
-              'Create account'
+              'アカウント作成'
             )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{' '}
+            既にアカウントをお持ちの方は{' '}
             <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign in
+              ログイン
             </Link>
           </p>
         </div>

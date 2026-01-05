@@ -26,19 +26,19 @@ export default function LoginForm() {
     const newErrors: FormErrors = {};
 
     if (!email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'メールアドレスを入力してください';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = '有効なメールアドレスを入力してください';
     }
 
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'パスワードを入力してください';
     } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = 'パスワードは8文字以上で入力してください';
     }
 
     if (showTwoFactor && !twoFactorCode) {
-      newErrors.twoFactorCode = 'Verification code is required';
+      newErrors.twoFactorCode = '認証コードを入力してください';
     }
 
     setErrors(newErrors);
@@ -70,16 +70,16 @@ export default function LoginForm() {
           setShowTwoFactor(true);
           setErrors({});
         } else if (result.error.includes('INVALID_2FA_CODE')) {
-          setErrors({ twoFactorCode: 'Invalid verification code' });
+          setErrors({ twoFactorCode: '認証コードが無効です' });
         } else {
-          setErrors({ general: 'Invalid email or password' });
+          setErrors({ general: 'メールアドレスまたはパスワードが正しくありません' });
         }
       } else {
         router.push('/dashboard');
         router.refresh();
       }
     } catch {
-      setErrors({ general: 'An unexpected error occurred. Please try again.' });
+      setErrors({ general: '予期せぬエラーが発生しました。もう一度お試しください。' });
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +96,7 @@ export default function LoginForm() {
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-lg shadow-md p-8">
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-          {showTwoFactor ? 'Two-Factor Authentication' : 'Sign in to your account'}
+          {showTwoFactor ? '二要素認証' : 'ログイン'}
         </h2>
 
         {errors.general && (
@@ -110,7 +110,7 @@ export default function LoginForm() {
             <>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email address
+                  メールアドレス
                 </label>
                 <input
                   id="email"
@@ -122,7 +122,7 @@ export default function LoginForm() {
                   className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.email ? 'border-red-300' : 'border-gray-300'
                   }`}
-                  placeholder="you@example.com"
+                  placeholder="example@example.com"
                 />
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -131,7 +131,7 @@ export default function LoginForm() {
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
+                  パスワード
                 </label>
                 <input
                   id="password"
@@ -143,7 +143,7 @@ export default function LoginForm() {
                   className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.password ? 'border-red-300' : 'border-gray-300'
                   }`}
-                  placeholder="Enter your password"
+                  placeholder="パスワードを入力"
                 />
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -159,13 +159,13 @@ export default function LoginForm() {
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                    Remember me
+                    ログイン状態を保持
                   </label>
                 </div>
 
                 <div className="text-sm">
                   <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                    Forgot your password?
+                    パスワードを忘れた方
                   </Link>
                 </div>
               </div>
@@ -174,13 +174,13 @@ export default function LoginForm() {
             <>
               <div className="text-center mb-4">
                 <p className="text-sm text-gray-600">
-                  Enter the verification code from your authenticator app
+                  認証アプリに表示された認証コードを入力してください
                 </p>
               </div>
 
               <div>
                 <label htmlFor="twoFactorCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  {isRecoveryCode ? 'Recovery Code' : 'Verification Code'}
+                  {isRecoveryCode ? 'リカバリーコード' : '認証コード'}
                 </label>
                 <input
                   id="twoFactorCode"
@@ -213,7 +213,7 @@ export default function LoginForm() {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="use-recovery" className="ml-2 block text-sm text-gray-700">
-                  Use recovery code instead
+                  リカバリーコードを使用
                 </label>
               </div>
 
@@ -222,7 +222,7 @@ export default function LoginForm() {
                 onClick={handleBackToLogin}
                 className="w-full text-sm text-blue-600 hover:text-blue-500"
               >
-                Back to login
+                ログインに戻る
               </button>
             </>
           )}
@@ -240,10 +240,10 @@ export default function LoginForm() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {showTwoFactor ? 'Verifying...' : 'Signing in...'}
+                {showTwoFactor ? '認証中...' : 'ログイン中...'}
               </span>
             ) : (
-              showTwoFactor ? 'Verify' : 'Sign in'
+              showTwoFactor ? '認証する' : 'ログイン'
             )}
           </button>
         </form>
@@ -251,9 +251,9 @@ export default function LoginForm() {
         {!showTwoFactor && (
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{' '}
+              アカウントをお持ちでない方は{' '}
               <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                Sign up
+                新規登録
               </Link>
             </p>
           </div>

@@ -40,9 +40,9 @@ export default async function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <h1 className="text-2xl font-bold text-gray-900">ダッシュボード</h1>
               <p className="text-sm text-gray-600">
-                Welcome back, {session.user.name || session.user.email}
+                ようこそ、{session.user.name || session.user.email} さん
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
                   type="submit"
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
-                  Sign out
+                  ログアウト
                 </button>
               </form>
             </div>
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Projects</p>
+                <p className="text-sm font-medium text-gray-500">プロジェクト</p>
                 <p className="text-2xl font-semibold text-gray-900">{projectCount}</p>
               </div>
             </div>
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Photos</p>
+                <p className="text-sm font-medium text-gray-500">写真</p>
                 <p className="text-2xl font-semibold text-gray-900">{photoCount}</p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Albums</p>
+                <p className="text-sm font-medium text-gray-500">アルバム</p>
                 <p className="text-2xl font-semibold text-gray-900">{albumCount}</p>
               </div>
             </div>

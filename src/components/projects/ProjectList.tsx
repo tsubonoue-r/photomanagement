@@ -90,24 +90,24 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
 
   // Status filter options
   const statusOptions: { value: ProjectStatus | ''; label: string }[] = [
-    { value: '', label: 'All Status' },
-    { value: 'ACTIVE', label: 'Active' },
-    { value: 'COMPLETED', label: 'Completed' },
-    { value: 'ARCHIVED', label: 'Archived' },
-    { value: 'SUSPENDED', label: 'Suspended' },
+    { value: '', label: 'すべてのステータス' },
+    { value: 'ACTIVE', label: '進行中' },
+    { value: 'COMPLETED', label: '完了' },
+    { value: 'ARCHIVED', label: 'アーカイブ' },
+    { value: 'SUSPENDED', label: '一時停止' },
   ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">Projects</h2>
+        <h2 className="text-xl font-semibold text-gray-900">プロジェクト</h2>
         <button
           onClick={() => setShowCreateForm(true)}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          New Project
+          新規プロジェクト
         </button>
       </div>
 
@@ -120,7 +120,7 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search projects..."
+            placeholder="プロジェクトを検索..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -150,7 +150,7 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
             onClick={fetchProjects}
             className="ml-4 underline hover:no-underline"
           >
-            Retry
+            再試行
           </button>
         </div>
       )}
@@ -169,12 +169,12 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
             <Search className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {debouncedSearch || statusFilter ? 'No projects found' : 'No projects yet'}
+            {debouncedSearch || statusFilter ? 'プロジェクトが見つかりません' : 'プロジェクトがありません'}
           </h3>
           <p className="text-gray-500 mb-4">
             {debouncedSearch || statusFilter
-              ? 'Try adjusting your search or filter criteria'
-              : 'Get started by creating your first project'}
+              ? '検索条件やフィルターを変更してみてください'
+              : '最初のプロジェクトを作成しましょう'}
           </p>
           {!debouncedSearch && !statusFilter && (
             <button
@@ -182,7 +182,7 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Create Project
+              プロジェクトを作成
             </button>
           )}
         </div>
