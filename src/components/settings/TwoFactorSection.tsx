@@ -47,7 +47,7 @@ export function TwoFactorSection() {
         setStatus(data);
       }
     } catch {
-      setError('Failed to load 2FA status');
+      setError('2FA状態の読み込みに失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -61,14 +61,14 @@ export function TwoFactorSection() {
       const response = await fetch('/api/auth/2fa/setup');
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to start setup');
+        throw new Error(data.error || 'セットアップの開始に失敗しました');
       }
 
       const data = await response.json();
       setSetupData(data);
       setShowSetup(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start setup');
+      setError(err instanceof Error ? err.message : 'セットアップの開始に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +76,7 @@ export function TwoFactorSection() {
 
   const completeSetup = async () => {
     if (!verificationCode || verificationCode.length !== 6) {
-      setError('Please enter a valid 6-digit code');
+      setError('有効な6桁のコードを入力してください');
       return;
     }
 
@@ -93,7 +93,7 @@ export function TwoFactorSection() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Verification failed');
+        throw new Error(data.error || '認証に失敗しました');
       }
 
       setRecoveryCodes(data.recoveryCodes);
@@ -101,10 +101,10 @@ export function TwoFactorSection() {
       setShowSetup(false);
       setSetupData(null);
       setVerificationCode('');
-      setSuccess('Two-factor authentication has been enabled!');
+      setSuccess('二要素認証が有効になりました');
       fetchStatus();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      setError(err instanceof Error ? err.message : '認証に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +112,7 @@ export function TwoFactorSection() {
 
   const disableTwoFactor = async () => {
     if (!disablePassword) {
-      setError('Password is required');
+      setError('パスワードを入力してください');
       return;
     }
 
@@ -129,15 +129,15 @@ export function TwoFactorSection() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to disable 2FA');
+        throw new Error(data.error || '2FAの無効化に失敗しました');
       }
 
       setShowDisable(false);
       setDisablePassword('');
-      setSuccess('Two-factor authentication has been disabled');
+      setSuccess('二要素認証が無効になりました');
       fetchStatus();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to disable 2FA');
+      setError(err instanceof Error ? err.message : '2FAの無効化に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +145,7 @@ export function TwoFactorSection() {
 
   const copyRecoveryCodes = () => {
     navigator.clipboard.writeText(recoveryCodes.join('\n'));
-    setSuccess('Recovery codes copied to clipboard');
+    setSuccess('リカバリーコードをクリップボードにコピーしました');
     setTimeout(() => setSuccess(''), 3000);
   };
 
@@ -174,7 +174,7 @@ export function TwoFactorSection() {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Two-Factor Authentication
+        二要素認証
       </h3>
 
       {error && (
@@ -200,14 +200,14 @@ export function TwoFactorSection() {
             ></div>
             <span className="text-gray-700">
               {status.enabled
-                ? 'Two-factor authentication is enabled'
-                : 'Two-factor authentication is not enabled'}
+                ? '二要素認証は有効です'
+                : '二要素認証は無効です'}
             </span>
           </div>
 
           {status.enabled && (
             <p className="text-sm text-gray-500 mb-4">
-              Recovery codes remaining: {status.recoveryCodesRemaining}
+              残りのリカバリーコード: {status.recoveryCodesRemaining}
             </p>
           )}
 
@@ -217,7 +217,7 @@ export function TwoFactorSection() {
                 onClick={() => setShowDisable(true)}
                 className="px-4 py-2 text-red-600 border border-red-300 rounded-md hover:bg-red-50"
               >
-                Disable 2FA
+                2FAを無効にする
               </button>
             ) : (
               <button
@@ -225,7 +225,7 @@ export function TwoFactorSection() {
                 disabled={isLoading}
                 className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {isLoading ? 'Loading...' : 'Enable 2FA'}
+                {isLoading ? '読み込み中...' : '2FAを有効にする'}
               </button>
             )}
           </div>
@@ -236,7 +236,7 @@ export function TwoFactorSection() {
       {showSetup && setupData && (
         <div>
           <p className="text-gray-600 mb-4">
-            Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
+            認証アプリ（Google Authenticator、Authyなど）でこのQRコードをスキャンしてください
           </p>
 
           <div className="flex justify-center mb-4">
@@ -245,7 +245,7 @@ export function TwoFactorSection() {
 
           <div className="mb-4">
             <p className="text-sm text-gray-500 mb-2">
-              Or enter this code manually:
+              または手動でこのコードを入力:
             </p>
             <code className="block p-2 bg-gray-100 rounded text-sm font-mono break-all">
               {setupData.secret}
@@ -254,13 +254,13 @@ export function TwoFactorSection() {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Verification Code
+              認証コード
             </label>
             <input
               type="text"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="Enter 6-digit code"
+              placeholder="6桁のコードを入力"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               maxLength={6}
             />
@@ -272,7 +272,7 @@ export function TwoFactorSection() {
               disabled={isLoading || verificationCode.length !== 6}
               className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-              {isLoading ? 'Verifying...' : 'Verify and Enable'}
+              {isLoading ? '認証中...' : '認証して有効化'}
             </button>
             <button
               onClick={() => {
@@ -282,7 +282,7 @@ export function TwoFactorSection() {
               }}
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Cancel
+              キャンセル
             </button>
           </div>
         </div>
@@ -293,11 +293,11 @@ export function TwoFactorSection() {
         <div>
           <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
             <p className="text-yellow-800 font-medium mb-2">
-              Save your recovery codes
+              リカバリーコードを保存してください
             </p>
             <p className="text-sm text-yellow-700">
-              These codes can be used to access your account if you lose your authenticator device.
-              Each code can only be used once. Store them in a safe place.
+              認証デバイスを紛失した場合、これらのコードでアカウントにアクセスできます。
+              各コードは一度しか使用できません。安全な場所に保管してください。
             </p>
           </div>
 
@@ -312,13 +312,13 @@ export function TwoFactorSection() {
               onClick={copyRecoveryCodes}
               className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Copy Codes
+              コピー
             </button>
             <button
               onClick={downloadRecoveryCodes}
               className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Download
+              ダウンロード
             </button>
             <button
               onClick={() => {
@@ -327,7 +327,7 @@ export function TwoFactorSection() {
               }}
               className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
-              Done
+              完了
             </button>
           </div>
         </div>
@@ -337,18 +337,18 @@ export function TwoFactorSection() {
       {showDisable && (
         <div>
           <p className="text-gray-600 mb-4">
-            Enter your password to disable two-factor authentication.
+            二要素認証を無効にするにはパスワードを入力してください。
           </p>
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+              パスワード
             </label>
             <input
               type="password"
               value={disablePassword}
               onChange={(e) => setDisablePassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder="パスワードを入力"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -359,7 +359,7 @@ export function TwoFactorSection() {
               disabled={isLoading || !disablePassword}
               className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
             >
-              {isLoading ? 'Disabling...' : 'Disable 2FA'}
+              {isLoading ? '無効化中...' : '2FAを無効にする'}
             </button>
             <button
               onClick={() => {
@@ -368,7 +368,7 @@ export function TwoFactorSection() {
               }}
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Cancel
+              キャンセル
             </button>
           </div>
         </div>

@@ -53,14 +53,14 @@ export function NotificationSection({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to update notification settings');
+        throw new Error(result.error || '通知設定の更新に失敗しました');
       }
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to update notification settings'
+        err instanceof Error ? err.message : '通知設定の更新に失敗しました'
       );
     } finally {
       setSaving(false);
@@ -70,23 +70,23 @@ export function NotificationSection({
   const notificationOptions = [
     {
       key: 'emailNotifications' as const,
-      label: 'Email Notifications',
-      description: 'Receive email notifications for important updates',
+      label: 'メール通知',
+      description: '重要な更新についてメール通知を受け取る',
     },
     {
       key: 'projectUpdates' as const,
-      label: 'Project Updates',
-      description: 'Get notified when projects you are a member of are updated',
+      label: 'プロジェクト更新',
+      description: '参加しているプロジェクトが更新されたときに通知を受け取る',
     },
     {
       key: 'albumSharing' as const,
-      label: 'Album Sharing',
-      description: 'Receive notifications when albums are shared with you',
+      label: 'アルバム共有',
+      description: 'アルバムが共有されたときに通知を受け取る',
     },
     {
       key: 'weeklyDigest' as const,
-      label: 'Weekly Digest',
-      description: 'Receive a weekly summary of activity',
+      label: '週次ダイジェスト',
+      description: '週次アクティビティサマリーを受け取る',
     },
   ];
 
@@ -95,7 +95,7 @@ export function NotificationSection({
       <div className="flex items-center gap-3 mb-6">
         <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Notification Settings
+          通知設定
         </h2>
       </div>
 
@@ -111,7 +111,7 @@ export function NotificationSection({
         {success && (
           <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
             <p className="text-sm text-green-600 dark:text-green-400">
-              Notification settings updated successfully!
+              通知設定を更新しました
             </p>
           </div>
         )}
@@ -159,7 +159,7 @@ export function NotificationSection({
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? '保存中...' : '変更を保存'}
           </button>
         </div>
       </div>

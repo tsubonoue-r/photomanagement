@@ -43,23 +43,23 @@ export function PasswordSection() {
     const newErrors: PasswordErrors = {};
 
     if (!currentPassword) {
-      newErrors.currentPassword = 'Current password is required';
+      newErrors.currentPassword = '現在のパスワードを入力してください';
     } else if (currentPassword.length < 8) {
-      newErrors.currentPassword = 'Password must be at least 8 characters';
+      newErrors.currentPassword = 'パスワードは8文字以上で入力してください';
     }
 
     if (!newPassword) {
-      newErrors.newPassword = 'New password is required';
+      newErrors.newPassword = '新しいパスワードを入力してください';
     } else if (!isPasswordStrong) {
-      newErrors.newPassword = 'Password does not meet requirements';
+      newErrors.newPassword = 'パスワード要件を満たしていません';
     } else if (currentPassword === newPassword) {
-      newErrors.newPassword = 'New password must be different from current';
+      newErrors.newPassword = '新しいパスワードは現在のパスワードと異なる必要があります';
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your new password';
+      newErrors.confirmPassword = '新しいパスワードを再入力してください';
     } else if (newPassword !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = 'パスワードが一致しません';
     }
 
     setErrors(newErrors);
@@ -92,9 +92,9 @@ export function PasswordSection() {
 
       if (!result.success) {
         if (response.status === 401) {
-          setGeneralError('Current password is incorrect');
+          setGeneralError('現在のパスワードが正しくありません');
         } else {
-          throw new Error(result.error || 'Failed to change password');
+          throw new Error(result.error || 'パスワードの変更に失敗しました');
         }
         return;
       }
@@ -107,7 +107,7 @@ export function PasswordSection() {
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       setGeneralError(
-        err instanceof Error ? err.message : 'Failed to change password'
+        err instanceof Error ? err.message : 'パスワードの変更に失敗しました'
       );
     } finally {
       setSaving(false);
@@ -170,7 +170,7 @@ export function PasswordSection() {
       <div className="flex items-center gap-3 mb-6">
         <Lock className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Change Password
+          パスワード変更
         </h2>
       </div>
 
@@ -187,7 +187,7 @@ export function PasswordSection() {
           <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
             <p className="text-sm text-green-600 dark:text-green-400">
-              Password changed successfully!
+              パスワードを変更しました
             </p>
           </div>
         )}
@@ -195,7 +195,7 @@ export function PasswordSection() {
         {/* Current Password */}
         <PasswordInput
           id="currentPassword"
-          label="Current Password"
+          label="現在のパスワード"
           value={currentPassword}
           onChange={setCurrentPassword}
           show={showCurrentPassword}
@@ -207,7 +207,7 @@ export function PasswordSection() {
         {/* New Password */}
         <PasswordInput
           id="newPassword"
-          label="New Password"
+          label="新しいパスワード"
           value={newPassword}
           onChange={setNewPassword}
           show={showNewPassword}
@@ -220,14 +220,14 @@ export function PasswordSection() {
         {newPassword && (
           <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Password requirements:
+              パスワード要件:
             </p>
             <ul className="space-y-1 text-sm">
               {[
-                { check: passwordChecks.minLength, label: 'At least 8 characters' },
-                { check: passwordChecks.hasUppercase, label: 'One uppercase letter' },
-                { check: passwordChecks.hasLowercase, label: 'One lowercase letter' },
-                { check: passwordChecks.hasNumber, label: 'One number' },
+                { check: passwordChecks.minLength, label: '8文字以上' },
+                { check: passwordChecks.hasUppercase, label: '大文字を1つ以上' },
+                { check: passwordChecks.hasLowercase, label: '小文字を1つ以上' },
+                { check: passwordChecks.hasNumber, label: '数字を1つ以上' },
               ].map(({ check, label }) => (
                 <li
                   key={label}
@@ -256,7 +256,7 @@ export function PasswordSection() {
         {/* Confirm Password */}
         <PasswordInput
           id="confirmPassword"
-          label="Confirm New Password"
+          label="新しいパスワード（確認）"
           value={confirmPassword}
           onChange={setConfirmPassword}
           show={showConfirmPassword}
@@ -273,7 +273,7 @@ export function PasswordSection() {
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            {saving ? 'Changing...' : 'Change Password'}
+            {saving ? '変更中...' : 'パスワードを変更'}
           </button>
         </div>
       </form>

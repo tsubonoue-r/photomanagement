@@ -20,17 +20,17 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/projects', label: 'Projects', icon: FolderKanban },
-  { href: '/photos', label: 'Photos', icon: Image },
-  { href: '/albums', label: 'Albums', icon: Album },
-  { href: '/categories', label: 'Categories', icon: Tags },
-  { href: '/blackboard', label: 'Blackboard', icon: Clipboard },
-  { href: '/export', label: 'Export', icon: Download },
+  { href: '/dashboard', label: 'ダッシュボード', icon: Home },
+  { href: '/projects', label: 'プロジェクト', icon: FolderKanban },
+  { href: '/photos', label: '写真', icon: Image },
+  { href: '/albums', label: 'アルバム', icon: Album },
+  { href: '/categories', label: '工種分類', icon: Tags },
+  { href: '/blackboard', label: '電子黒板', icon: Clipboard },
+  { href: '/export', label: 'エクスポート', icon: Download },
 ];
 
 const bottomNavItems: NavItem[] = [
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/settings', label: '設定', icon: Settings },
 ];
 
 interface SidebarProps {
@@ -77,7 +77,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
             <Image className="h-5 w-5 text-white" />
           </div>
           <span className="text-lg font-semibold text-gray-900 dark:text-white">
-            PhotoManager
+            写真管理
           </span>
         </Link>
       </div>

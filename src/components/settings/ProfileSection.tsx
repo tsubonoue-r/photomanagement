@@ -36,7 +36,7 @@ export function ProfileSection({
     setSuccess(false);
 
     if (!name.trim()) {
-      setError('Name is required');
+      setError('名前を入力してください');
       return;
     }
 
@@ -60,13 +60,13 @@ export function ProfileSection({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to update profile');
+        throw new Error(result.error || 'プロフィールの更新に失敗しました');
       }
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
+      setError(err instanceof Error ? err.message : 'プロフィールの更新に失敗しました');
     } finally {
       setSaving(false);
     }
@@ -77,7 +77,7 @@ export function ProfileSection({
       <div className="flex items-center gap-3 mb-6">
         <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Profile Information
+          プロフィール情報
         </h2>
       </div>
 
@@ -102,10 +102,10 @@ export function ProfileSection({
           </div>
           <div>
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              Profile Photo
+              プロフィール写真
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter an image URL below
+              下記に画像URLを入力してください
             </p>
           </div>
         </div>
@@ -121,7 +121,7 @@ export function ProfileSection({
         {success && (
           <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
             <p className="text-sm text-green-600 dark:text-green-400">
-              Profile updated successfully!
+              プロフィールを更新しました
             </p>
           </div>
         )}
@@ -129,7 +129,7 @@ export function ProfileSection({
         {/* Email (Read-only) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Email
+            メールアドレス
           </label>
           <input
             type="email"
@@ -138,7 +138,7 @@ export function ProfileSection({
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Email cannot be changed
+            メールアドレスは変更できません
           </p>
         </div>
 
@@ -148,14 +148,14 @@ export function ProfileSection({
             htmlFor="name"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
           >
-            Display Name <span className="text-red-500">*</span>
+            表示名 <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name"
+            placeholder="名前を入力"
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           />
@@ -167,7 +167,7 @@ export function ProfileSection({
             htmlFor="image"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
           >
-            Avatar URL
+            アバターURL
           </label>
           <input
             type="url"
@@ -187,7 +187,7 @@ export function ProfileSection({
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? '保存中...' : '変更を保存'}
           </button>
         </div>
       </form>
