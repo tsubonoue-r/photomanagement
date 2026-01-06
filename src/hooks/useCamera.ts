@@ -1,6 +1,14 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { CameraSource } from '@capacitor/camera';
+import {
+  isCapacitorCameraAvailable,
+  captureWithCapacitorCamera,
+  dataUrlToBlob,
+  getPhotoSize,
+  requestCameraPermission,
+} from '@/lib/capacitor/camera';
 
 export type CameraFacingMode = 'user' | 'environment';
 
@@ -28,6 +36,8 @@ export interface CapturedPhoto {
 export interface UseCameraOptions {
   initialFacingMode?: CameraFacingMode;
   jpegQuality?: number;
+  /** 黒板オーバーレイ使用時はtrue（ネイティブカメラを使わない） */
+  useWebCameraOnly?: boolean;
 }
 
 export interface UseCameraReturn {
@@ -39,16 +49,24 @@ export interface UseCameraReturn {
   facingMode: CameraFacingMode;
   hasMultipleCameras: boolean;
   capturedPhoto: CapturedPhoto | null;
+  /** ネイティブカメラモードかどうか */
+  isNativeCamera: boolean;
   initCamera: () => Promise<void>;
   stopCamera: () => void;
   switchCamera: () => Promise<void>;
   capturePhoto: () => Promise<CapturedPhoto | null>;
   clearCapturedPhoto: () => void;
   retakePhoto: () => void;
+  /** ネイティブカメラで直接撮影（ビデオプレビューなし） */
+  captureWithNativeCamera: () => Promise<CapturedPhoto | null>;
 }
 
 export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
-  const { initialFacingMode = 'environment', jpegQuality = 0.92 } = options;
+  const {
+    initialFacingMode = 'environment',
+    jpegQuality = 0.92,
+    useWebCameraOnly = false,
+  } = options;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -61,8 +79,16 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<CapturedPhoto | null>(null);
 
-  // Check for multiple cameras
+  // ネイティブカメラが使用可能かつWebカメラのみモードでない場合
+  const isNativeCamera = isCapacitorCameraAvailable() && !useWebCameraOnly;
+
+  // Check for multiple cameras (Web mode only)
   const checkCameras = useCallback(async () => {
+    if (isNativeCamera) {
+      // ネイティブでは常にカメラ切り替え可能とみなす
+      setHasMultipleCameras(true);
+      return;
+    }
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter((d) => d.kind === 'videoinput');
@@ -70,9 +96,9 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
     } catch {
       setHasMultipleCameras(false);
     }
-  }, []);
+  }, [isNativeCamera]);
 
-  // Stop camera stream
+  // Stop camera stream (Web mode only)
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -90,39 +116,49 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
     setError(null);
 
     try {
-      // Check if mediaDevices is supported
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('カメラAPIがサポートされていません');
+      if (isNativeCamera) {
+        // ネイティブモード: 権限リクエストのみ
+        const granted = await requestCameraPermission();
+        if (!granted) {
+          throw new Error('カメラへのアクセスが拒否されました。設定からカメラの許可を有効にしてください。');
+        }
+        await checkCameras();
+        setIsInitialized(true);
+      } else {
+        // Webモード: getUserMedia を使用
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('カメラAPIがサポートされていません');
+        }
+
+        // Stop existing stream
+        stopCamera();
+
+        // Camera constraints - prefer high resolution
+        const constraints: MediaStreamConstraints = {
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 4096, min: 1920 },
+            height: { ideal: 3072, min: 1080 },
+          },
+          audio: false,
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          // iOS Safari requires these attributes
+          videoRef.current.setAttribute('playsinline', 'true');
+          videoRef.current.setAttribute('webkit-playsinline', 'true');
+          videoRef.current.muted = true;
+
+          await videoRef.current.play();
+        }
+
+        await checkCameras();
+        setIsInitialized(true);
       }
-
-      // Stop existing stream
-      stopCamera();
-
-      // Camera constraints - prefer high resolution
-      const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: { ideal: facingMode },
-          width: { ideal: 4096, min: 1920 },
-          height: { ideal: 3072, min: 1080 },
-        },
-        audio: false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // iOS Safari requires these attributes
-        videoRef.current.setAttribute('playsinline', 'true');
-        videoRef.current.setAttribute('webkit-playsinline', 'true');
-        videoRef.current.muted = true;
-
-        await videoRef.current.play();
-      }
-
-      await checkCameras();
-      setIsInitialized(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'カメラの初期化に失敗しました';
 
@@ -140,7 +176,7 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [facingMode, stopCamera, checkCameras]);
+  }, [isNativeCamera, facingMode, stopCamera, checkCameras]);
 
   // Switch between front and back camera
   const switchCamera = useCallback(async () => {
@@ -148,9 +184,9 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
     setFacingMode(newFacingMode);
   }, [facingMode]);
 
-  // Re-initialize when facing mode changes
+  // Re-initialize when facing mode changes (Web mode only)
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && !isNativeCamera) {
       initCamera();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -172,8 +208,63 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
     });
   };
 
-  // Capture photo
-  const capturePhoto = useCallback(async (): Promise<CapturedPhoto | null> => {
+  // Capture photo with native camera (Capacitor)
+  const captureWithNativeCamera = useCallback(async (): Promise<CapturedPhoto | null> => {
+    if (!isNativeCamera) {
+      return null;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await captureWithCapacitorCamera({
+        quality: Math.round(jpegQuality * 100),
+        source: CameraSource.Camera,
+        correctOrientation: true,
+        saveToGallery: false,
+      });
+
+      if (!result) {
+        return null;
+      }
+
+      // Get photo dimensions
+      const { width, height } = await getPhotoSize(result.dataUrl);
+
+      // Convert to blob
+      const blob = await dataUrlToBlob(result.dataUrl);
+
+      // Get location
+      const position = await getCurrentLocation();
+      const location = position
+        ? {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+          }
+        : undefined;
+
+      const photo: CapturedPhoto = {
+        dataUrl: result.dataUrl,
+        blob,
+        width,
+        height,
+        timestamp: new Date(),
+        location,
+      };
+
+      setCapturedPhoto(photo);
+      return photo;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '写真の撮影に失敗しました';
+      setError(message);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isNativeCamera, jpegQuality]);
+
+  // Capture photo (Web mode - from video stream)
+  const capturePhotoFromVideo = useCallback(async (): Promise<CapturedPhoto | null> => {
     if (!videoRef.current || !canvasRef.current || !isInitialized) {
       return null;
     }
@@ -241,6 +332,14 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
     });
   }, [isInitialized, facingMode, jpegQuality]);
 
+  // Unified capture photo function
+  const capturePhoto = useCallback(async (): Promise<CapturedPhoto | null> => {
+    if (isNativeCamera) {
+      return captureWithNativeCamera();
+    }
+    return capturePhotoFromVideo();
+  }, [isNativeCamera, captureWithNativeCamera, capturePhotoFromVideo]);
+
   // Clear captured photo
   const clearCapturedPhoto = useCallback(() => {
     setCapturedPhoto(null);
@@ -267,11 +366,13 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
     facingMode,
     hasMultipleCameras,
     capturedPhoto,
+    isNativeCamera,
     initCamera,
     stopCamera,
     switchCamera,
     capturePhoto,
     clearCapturedPhoto,
     retakePhoto,
+    captureWithNativeCamera,
   };
 }

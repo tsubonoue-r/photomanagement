@@ -10,6 +10,7 @@ import {
   Loader2,
   AlertCircle,
   Clipboard,
+  Smartphone,
 } from 'lucide-react';
 import { useCamera, CapturedPhoto } from '@/hooks/useCamera';
 import { hapticShutter, hapticLight, hapticSuccess } from '@/lib/capacitor/haptics';
@@ -21,6 +22,8 @@ interface CameraViewProps {
   showBlackboardToggle?: boolean;
   isBlackboardVisible?: boolean;
   onBlackboardToggle?: () => void;
+  /** 黒板オーバーレイ使用時はtrue（Webカメラを強制使用） */
+  useWebCameraOnly?: boolean;
 }
 
 export function CameraView({
@@ -30,6 +33,7 @@ export function CameraView({
   showBlackboardToggle = false,
   isBlackboardVisible = false,
   onBlackboardToggle,
+  useWebCameraOnly = false,
 }: CameraViewProps) {
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const {
@@ -41,12 +45,13 @@ export function CameraView({
     facingMode,
     hasMultipleCameras,
     capturedPhoto,
+    isNativeCamera,
     initCamera,
     stopCamera,
     switchCamera,
     capturePhoto,
     retakePhoto,
-  } = useCamera();
+  } = useCamera({ useWebCameraOnly });
 
   // Initialize camera on mount
   useEffect(() => {
@@ -56,10 +61,7 @@ export function CameraView({
 
   const handleCapture = async () => {
     hapticShutter();
-    const photo = await capturePhoto();
-    if (photo && onCapture) {
-      // If there's a callback, we'll handle confirmation separately
-    }
+    await capturePhoto();
   };
 
   const handleConfirm = () => {
@@ -112,8 +114,8 @@ export function CameraView({
     );
   }
 
-  // Loading state
-  if (isLoading && !isInitialized) {
+  // Loading state (only for initial loading)
+  if (isLoading && !isInitialized && !isNativeCamera) {
     return (
       <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center">
         <Loader2 className="w-12 h-12 text-white animate-spin mb-4" />
@@ -163,7 +165,66 @@ export function CameraView({
     );
   }
 
-  // Camera view
+  // Native camera mode - show capture button only (no video preview)
+  if (isNativeCamera) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black flex flex-col">
+        {/* Header */}
+        <div className="absolute top-0 left-0 right-0 z-10 p-4 pt-safe bg-gradient-to-b from-black/50 to-transparent">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handleClose}
+              className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Native Camera Prompt */}
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="bg-gray-800 rounded-2xl p-8 max-w-sm text-center">
+            <div className="w-20 h-20 rounded-full bg-blue-600/20 flex items-center justify-center mx-auto mb-6">
+              <Smartphone className="w-10 h-10 text-blue-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-3">
+              ネイティブカメラ
+            </h3>
+            <p className="text-gray-400 text-sm mb-8">
+              デバイスのカメラアプリを使用して高品質な写真を撮影します
+            </p>
+            <button
+              onClick={handleCapture}
+              disabled={isLoading}
+              className="w-full py-4 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  撮影中...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-5 h-5" />
+                  カメラを起動
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Native mode indicator */}
+        <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+          <div className="px-3 py-1 bg-blue-600/50 rounded-full text-white text-xs flex items-center gap-1">
+            <Smartphone className="w-3 h-3" />
+            ネイティブカメラモード
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Web camera view (with video preview)
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       {/* Header */}
