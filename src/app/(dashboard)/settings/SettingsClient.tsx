@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, User, Lock, Shield, Bell, Palette, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, User, Lock, Shield, Bell, Palette, AlertTriangle, ChevronRight } from 'lucide-react';
 import {
   ProfileSection,
   PasswordSection,
@@ -26,52 +26,47 @@ interface SettingsClientProps {
 }
 
 /**
- * Settings Client Component
- *
- * Client-side settings interface with:
- * - Section navigation
- * - Responsive layout
- * - All settings sections rendered
+ * Settings Client Component - Mobile Compact Design
  */
 export function SettingsClient({ user, notifications }: SettingsClientProps) {
-  const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
+  const [activeSection, setActiveSection] = useState<SettingsSection | null>(null);
 
   const navigationItems = [
     {
       id: 'profile' as const,
-      label: 'Profile',
+      label: 'プロフィール',
       icon: User,
-      description: 'Manage your profile information',
+      color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
     },
     {
       id: 'password' as const,
-      label: 'Password',
+      label: 'パスワード',
       icon: Lock,
-      description: 'Change your password',
+      color: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
     },
     {
       id: 'security' as const,
-      label: 'Security',
+      label: 'セキュリティ',
       icon: Shield,
-      description: 'Two-factor authentication',
+      color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
     },
     {
       id: 'notifications' as const,
-      label: 'Notifications',
+      label: '通知設定',
       icon: Bell,
-      description: 'Configure email notifications',
+      color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
     },
     {
       id: 'display' as const,
-      label: 'Display',
+      label: '表示設定',
       icon: Palette,
-      description: 'Customize appearance',
+      color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400',
     },
     {
       id: 'account' as const,
-      label: 'Account',
+      label: 'アカウント削除',
       icon: AlertTriangle,
-      description: 'Manage your account',
+      color: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
     },
   ];
 
@@ -103,97 +98,98 @@ export function SettingsClient({ user, notifications }: SettingsClientProps) {
     }
   };
 
+  // If a section is selected, show only that section
+  if (activeSection) {
+    const currentItem = navigationItems.find(item => item.id === activeSection);
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        {/* Section Header */}
+        <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setActiveSection(null)}
+                className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors active:scale-95"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+                {currentItem?.label}
+              </h1>
+            </div>
+          </div>
+        </header>
+
+        <main className="px-4 py-4 pb-24">
+          {renderSection()}
+        </main>
+      </div>
+    );
+  }
+
+  // Main settings list
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Compact Header */}
+      <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors active:scale-95"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Settings
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Manage your account settings and preferences
-              </p>
-            </div>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">設定</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Navigation */}
-          <aside className="w-full lg:w-64 flex-shrink-0">
-            <nav className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                {navigationItems.map(({ id, label, icon: Icon, description }) => (
-                  <li key={id}>
-                    <button
-                      onClick={() => setActiveSection(id)}
-                      className={`w-full flex items-start gap-3 p-4 text-left transition-colors ${
-                        activeSection === id
-                          ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-l-4 border-transparent'
-                      }`}
-                    >
-                      <Icon
-                        className={`w-5 h-5 mt-0.5 ${
-                          activeSection === id
-                            ? 'text-blue-600 dark:text-blue-400'
-                            : id === 'account'
-                            ? 'text-red-500 dark:text-red-400'
-                            : 'text-gray-500 dark:text-gray-400'
-                        }`}
-                      />
-                      <div>
-                        <p
-                          className={`text-sm font-medium ${
-                            activeSection === id
-                              ? 'text-blue-600 dark:text-blue-400'
-                              : id === 'account'
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-gray-900 dark:text-white'
-                          }`}
-                        >
-                          {label}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
-                          {description}
-                        </p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-
-            {/* Account Info */}
-            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                Signed in as
-              </p>
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+      <main className="px-4 py-4 pb-24">
+        {/* User Info Card */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+              {user.image ? (
+                <img src={user.image} alt="" className="w-12 h-12 rounded-full object-cover" />
+              ) : (
+                <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white truncate">
+                {user.name || 'ユーザー'}
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {user.email}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Member since{' '}
-                {new Date(user.createdAt).toLocaleDateString('en-US', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </p>
             </div>
-          </aside>
+          </div>
+        </div>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">{renderSection()}</div>
+        {/* Settings List */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+          {navigationItems.map(({ id, label, icon: Icon, color }, index) => (
+            <button
+              key={id}
+              onClick={() => setActiveSection(id)}
+              className={`w-full flex items-center gap-3 p-4 text-left active:bg-gray-50 dark:active:bg-gray-800 transition-colors
+                ${index !== navigationItems.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}`}
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className={`flex-1 text-sm font-medium ${id === 'account' ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+                {label}
+              </span>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </button>
+          ))}
+        </div>
+
+        {/* Account Info */}
+        <div className="mt-4 p-4 text-center text-xs text-gray-500 dark:text-gray-400">
+          <p>登録日: {new Date(user.createdAt).toLocaleDateString('ja-JP')}</p>
         </div>
       </main>
     </div>

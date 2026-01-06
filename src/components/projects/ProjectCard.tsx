@@ -10,6 +10,8 @@ interface ProjectCardProps {
   project: ProjectWithCounts;
   onEdit: (project: ProjectWithCounts) => void;
   onDelete: (project: ProjectWithCounts) => void;
+  /** コンパクトモード（リストスタイル） */
+  compact?: boolean;
 }
 
 /**
@@ -21,7 +23,7 @@ interface ProjectCardProps {
  * - Photo, album, and member counts
  * - Actions menu (view, edit, delete)
  */
-export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit, onDelete, compact = false }: ProjectCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -50,6 +52,43 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
       day: 'numeric',
     });
   };
+
+  // Compact mode - list style for dashboard
+  if (compact) {
+    return (
+      <Link
+        href={`/projects/${project.id}/photos`}
+        className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-[0.98] transition-all"
+      >
+        <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+          <Folder className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+            {project.name}
+          </h3>
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1">
+              <Image className="w-3 h-3" />
+              {project._count.photos}
+            </span>
+            <span className="flex items-center gap-1">
+              <BookOpen className="w-3 h-3" />
+              {project._count.albums}
+            </span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${getStatusColorClasses(project.status)}`}
+            >
+              {getStatusLabel(project.status)}
+            </span>
+          </div>
+        </div>
+        <div className="flex-shrink-0 text-gray-400">
+          <Eye className="w-4 h-4" />
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">

@@ -223,157 +223,49 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Compact Header */}
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 min-w-0">
               <Link
                 href={`/projects/${projectId}`}
-                className="flex items-center gap-2 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors active:scale-95 flex-shrink-0"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                戻る
               </Link>
-              <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
-                写真一覧
-              </h1>
-              {totalCount > 0 && (
-                <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {totalCount}枚
-                </span>
-              )}
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate">写真一覧</h1>
+                {totalCount > 0 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{totalCount}枚</p>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              {/* Keyboard shortcuts button */}
-              <KeyboardShortcutsButton />
-
-              {/* Reorder toggle */}
-              <button
-                onClick={() => setEnableReorder(!enableReorder)}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors
-                  ${enableReorder
-                    ? 'border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                    : 'border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700'
-                  }`}
-                aria-pressed={enableReorder}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Grid toggle - mobile simplified */}
+              <select
+                value={gridColumns}
+                onChange={(e) => setGridColumns(Number(e.target.value) as 2 | 3 | 4 | 5 | 6)}
+                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-xs
+                  text-gray-700 dark:text-gray-300"
               >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 8h16M4 16h16"
-                  />
-                </svg>
-                並べ替え
-              </button>
+                <option value={2}>2列</option>
+                <option value={3}>3列</option>
+                <option value={4}>4列</option>
+              </select>
 
-              {/* View mode toggle */}
-              <div className="flex rounded-lg border border-zinc-300 dark:border-zinc-600">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 ${
-                    viewMode === 'grid'
-                      ? 'bg-zinc-100 dark:bg-zinc-700'
-                      : 'hover:bg-zinc-50 dark:hover:bg-zinc-700'
-                  }`}
-                  aria-label="Grid view"
-                >
-                  <svg
-                    className="h-5 w-5 text-zinc-600 dark:text-zinc-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 ${
-                    viewMode === 'list'
-                      ? 'bg-zinc-100 dark:bg-zinc-700'
-                      : 'hover:bg-zinc-50 dark:hover:bg-zinc-700'
-                  }`}
-                  aria-label="List view"
-                >
-                  <svg
-                    className="h-5 w-5 text-zinc-600 dark:text-zinc-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Grid column selector */}
-              {viewMode === 'grid' && (
-                <select
-                  value={gridColumns}
-                  onChange={(e) => setGridColumns(Number(e.target.value) as 2 | 3 | 4 | 5 | 6)}
-                  className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm
-                    dark:border-zinc-600 dark:bg-zinc-700 dark:text-white"
-                >
-                  <option value={2}>2列</option>
-                  <option value={3}>3列</option>
-                  <option value={4}>4列</option>
-                  <option value={5}>5列</option>
-                  <option value={6}>6列</option>
-                </select>
-              )}
-
-              {/* Upload button */}
+              {/* Upload button - compact */}
               <Link
                 href={`/projects/${projectId}/photos/upload`}
-                className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium
-                  text-white transition-colors hover:bg-blue-600"
+                className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 text-white active:scale-95 transition-transform"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                  />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                アップロード
               </Link>
             </div>
           </div>
@@ -381,20 +273,15 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
       </header>
 
       {/* Main content */}
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Filters and sort */}
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex-1">
-            <PhotoFilters
-              filters={filters}
-              onFiltersChange={setFilters}
-              onSearch={handleSearch}
-              searchQuery={query}
-            />
-          </div>
-          <div className="flex-shrink-0">
-            <PhotoSorter sort={sort} onSortChange={setSort} />
-          </div>
+      <main className="px-4 py-4 pb-24">
+        {/* Filters - compact */}
+        <div className="mb-4">
+          <PhotoFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onSearch={handleSearch}
+            searchQuery={query}
+          />
         </div>
 
         {/* Bulk actions bar */}
@@ -413,15 +300,10 @@ export default function ProjectPhotosPage({ params }: ProjectPhotosPageProps) {
 
         {/* Error state */}
         {error && (
-          <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-            <p className="font-medium">エラーが発生しました</p>
-            <p className="mt-1 text-sm">{error}</p>
-            <button
-              onClick={() => refresh()}
-              className="mt-2 text-sm underline hover:no-underline"
-            >
-              再試行
-            </button>
+          <div className="mb-4 rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-red-700 dark:text-red-400">
+            <p className="text-sm font-medium">エラーが発生しました</p>
+            <p className="mt-1 text-xs">{error}</p>
+            <button onClick={() => refresh()} className="mt-2 text-xs underline">再試行</button>
           </div>
         )}
 

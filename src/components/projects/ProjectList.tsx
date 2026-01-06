@@ -10,6 +10,8 @@ import type { ProjectStatus } from '@prisma/client';
 
 interface ProjectListProps {
   initialProjects?: ProjectWithCounts[];
+  /** コンパクトモード（ダッシュボード用） */
+  compact?: boolean;
 }
 
 /**
@@ -21,7 +23,7 @@ interface ProjectListProps {
  * - Create new project button
  * - Edit and delete actions
  */
-export function ProjectList({ initialProjects = [] }: ProjectListProps) {
+export function ProjectList({ initialProjects = [], compact = false }: ProjectListProps) {
   const [projects, setProjects] = useState<ProjectWithCounts[]>(initialProjects);
   const [loading, setLoading] = useState(!initialProjects.length);
   const [error, setError] = useState<string | null>(null);
@@ -97,11 +99,58 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
     { value: 'SUSPENDED', label: '一時停止' },
   ];
 
+  // Compact mode for dashboard
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        {loading && (
+          <div className="flex justify-center py-6">
+            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+          </div>
+        )}
+
+        {!loading && projects.length === 0 && (
+          <div className="text-center py-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
+            <p className="text-sm text-gray-500 dark:text-gray-400">プロジェクトがありません</p>
+          </div>
+        )}
+
+        {!loading && projects.slice(0, 5).map((project) => (
+          <ProjectCard
+            key={project.id}
+            project={project}
+            onEdit={setEditingProject}
+            onDelete={setDeletingProject}
+            compact
+          />
+        ))}
+
+        {/* Edit Project Modal */}
+        {editingProject && (
+          <ProjectForm
+            project={editingProject}
+            onSave={handleProjectSaved}
+            onCancel={() => setEditingProject(null)}
+          />
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        {deletingProject && (
+          <DeleteProjectDialog
+            project={deletingProject}
+            onConfirm={handleProjectDeleted}
+            onCancel={() => setDeletingProject(null)}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">プロジェクト</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">プロジェクト</h2>
         <button
           onClick={() => setShowCreateForm(true)}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -121,7 +170,7 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="プロジェクトを検索..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
 
@@ -131,7 +180,7 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as ProjectStatus | '')}
-            className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+            className="pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             {statusOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -144,7 +193,7 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
           {error}
           <button
             onClick={fetchProjects}
@@ -164,14 +213,14 @@ export function ProjectList({ initialProjects = [] }: ProjectListProps) {
 
       {/* Empty State */}
       {!loading && !error && projects.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center mb-4">
+        <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <div className="w-16 h-16 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
             <Search className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             {debouncedSearch || statusFilter ? 'プロジェクトが見つかりません' : 'プロジェクトがありません'}
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
             {debouncedSearch || statusFilter
               ? '検索条件やフィルターを変更してみてください'
               : '最初のプロジェクトを作成しましょう'}
