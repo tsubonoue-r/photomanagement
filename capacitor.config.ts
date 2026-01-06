@@ -29,7 +29,9 @@ const config: CapacitorConfig = {
   webDir: 'public',
 
   server: {
-    url: serverUrl || 'http://localhost:3000',
+    // 開発時: ホストマシンのIPを使用（シミュレータからlocalhostは不可）
+    // 本番時: 環境変数からサーバーURLを取得
+    url: serverUrl || 'http://192.168.0.90:3000',
     // 開発時のみHTTP許可、本番はHTTPS必須
     cleartext: isDevelopment,
     androidScheme: 'https',
