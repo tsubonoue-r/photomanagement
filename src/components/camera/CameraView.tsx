@@ -12,6 +12,7 @@ import {
   Clipboard,
 } from 'lucide-react';
 import { useCamera, CapturedPhoto } from '@/hooks/useCamera';
+import { hapticShutter, hapticLight, hapticSuccess } from '@/lib/capacitor/haptics';
 
 interface CameraViewProps {
   onCapture?: (photo: CapturedPhoto) => void;
@@ -54,6 +55,7 @@ export function CameraView({
   }, [initCamera, stopCamera]);
 
   const handleCapture = async () => {
+    hapticShutter();
     const photo = await capturePhoto();
     if (photo && onCapture) {
       // If there's a callback, we'll handle confirmation separately
@@ -61,14 +63,26 @@ export function CameraView({
   };
 
   const handleConfirm = () => {
+    hapticSuccess();
     if (capturedPhoto && onCapture) {
       onCapture(capturedPhoto);
     }
   };
 
   const handleClose = () => {
+    hapticLight();
     stopCamera();
     onClose?.();
+  };
+
+  const handleRetake = () => {
+    hapticLight();
+    retakePhoto();
+  };
+
+  const handleSwitchCamera = () => {
+    hapticLight();
+    switchCamera();
   };
 
   // Error state
@@ -125,8 +139,8 @@ export function CameraView({
         <div className="p-4 pb-safe bg-black/80">
           <div className="flex items-center justify-center gap-6">
             <button
-              onClick={retakePhoto}
-              className="flex flex-col items-center gap-2 text-white"
+              onClick={handleRetake}
+              className="flex flex-col items-center gap-2 text-white active:scale-90 transition-transform"
             >
               <div className="w-14 h-14 rounded-full bg-gray-700 flex items-center justify-center hover:bg-gray-600 transition-colors">
                 <RotateCcw className="w-6 h-6" />
@@ -136,9 +150,9 @@ export function CameraView({
 
             <button
               onClick={handleConfirm}
-              className="flex flex-col items-center gap-2 text-white"
+              className="flex flex-col items-center gap-2 text-white active:scale-90 transition-transform"
             >
-              <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center hover:bg-green-700 transition-colors">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center hover:from-green-600 hover:to-green-700 transition-colors shadow-lg shadow-green-500/30">
                 <Check className="w-8 h-8" />
               </div>
               <span className="text-xs">使用する</span>
@@ -178,9 +192,9 @@ export function CameraView({
             )}
             {hasMultipleCameras && (
               <button
-                onClick={switchCamera}
+                onClick={handleSwitchCamera}
                 disabled={isLoading}
-                className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors disabled:opacity-50"
+                className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-all active:scale-90 disabled:opacity-50"
               >
                 <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
