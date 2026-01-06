@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { ProjectList } from '@/components/projects';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import type { ProjectWithCounts } from '@/types/project';
 
 /**
@@ -36,32 +37,20 @@ export default async function ProjectsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Compact Header */}
+      <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors active:scale-95"
             >
-              <svg
-                className="w-5 h-5 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
+              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">プロジェクト</h1>
-              <p className="text-sm text-gray-600">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">プロジェクト</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 工事写真プロジェクトの管理
               </p>
             </div>
@@ -69,7 +58,7 @@ export default async function ProjectsPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="px-4 py-4 pb-24">
         <ProjectList initialProjects={initialProjects as ProjectWithCounts[]} />
       </main>
     </div>
