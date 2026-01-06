@@ -160,3 +160,23 @@ certificates/
 
 # HTTPS proxy script (local dev)
 scripts/https-proxy.mjs
+
+# Capacitor / Native App
+# iOS
+ios/App/App/public
+ios/App/Pods
+ios/App/Podfile.lock
+ios/*.xcworkspace/xcuserdata
+ios/*.xcodeproj/xcuserdata
+ios/*.xcodeproj/project.xcworkspace
+ios/DerivedData
+ios/build
+
+# Android
+android/app/src/main/assets/public
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/*.iml
+android/.idea
