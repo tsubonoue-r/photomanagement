@@ -11,6 +11,8 @@ import {
   CornerDownRight,
   CornerUpLeft,
   CornerUpRight,
+  Save,
+  FolderOpen,
 } from 'lucide-react';
 import type { BlackboardTemplate, BlackboardFieldValue } from '@/types/blackboard';
 import { drawBlackboard } from '@/lib/blackboard';
@@ -31,6 +33,8 @@ interface BlackboardOverlayProps {
   state: BlackboardOverlayState;
   onStateChange: (state: BlackboardOverlayState) => void;
   containerRef?: React.RefObject<HTMLElement | null>;
+  onSave?: () => void;
+  onLoad?: () => void;
 }
 
 const POSITION_PRESETS = {
@@ -46,6 +50,8 @@ export function BlackboardOverlay({
   state,
   onStateChange,
   containerRef,
+  onSave,
+  onLoad,
 }: BlackboardOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -274,6 +280,36 @@ export function BlackboardOverlay({
               </span>
             </div>
           </div>
+
+          {/* Save/Load buttons */}
+          {(onSave || onLoad) && (
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-600">
+              {onLoad && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onLoad();
+                  }}
+                  className="flex-1 py-2 bg-gray-700 text-white text-xs rounded hover:bg-gray-600 transition-colors flex items-center justify-center gap-1"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  読み込み
+                </button>
+              )}
+              {onSave && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSave();
+                  }}
+                  className="flex-1 py-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                >
+                  <Save className="w-4 h-4" />
+                  保存
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Close button */}
           <button
