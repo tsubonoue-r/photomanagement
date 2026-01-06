@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { ProjectList } from '@/components/projects';
 import type { ProjectWithCounts } from '@/types/project';
+import { FolderKanban, Image, Album, Camera } from 'lucide-react';
+import Link from 'next/link';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -33,126 +35,93 @@ export default async function DashboardPage() {
     },
   });
 
+  const firstName = session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'ユーザー';
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">ダッシュボード</h1>
-              <p className="text-sm text-gray-600">
-                ようこそ、{session.user.name || session.user.email} さん
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                {session.user.role}
-              </span>
-              <form
-                action={async () => {
-                  'use server';
-                  const { signOut } = await import('@/lib/auth');
-                  await signOut({ redirectTo: '/login' });
-                }}
-              >
-                <button
-                  type="submit"
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  ログアウト
-                </button>
-              </form>
-            </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Compact Header */}
+      <div className="px-4 pt-2 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">おかえりなさい</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">{firstName} さん</h1>
           </div>
+          <Link
+            href="/camera"
+            className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 active:scale-95 transition-transform"
+          >
+            <Camera className="w-6 h-6 text-white" />
+          </Link>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                    />
-                  </svg>
-                </div>
+      {/* Stats Grid - 2x2 Compact */}
+      <div className="px-4 pb-4">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Projects */}
+          <Link href="/projects" className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-transform">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                <FolderKanban className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">プロジェクト</p>
-                <p className="text-2xl font-semibold text-gray-900">{projectCount}</p>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{projectCount}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">プロジェクト</p>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
+          {/* Photos */}
+          <Link href="/photos" className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-transform">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                <Image className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">写真</p>
-                <p className="text-2xl font-semibold text-gray-900">{photoCount}</p>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{photoCount}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">写真</p>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-purple-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
-                </div>
+          {/* Albums */}
+          <Link href="/albums" className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 active:scale-[0.98] transition-transform">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
+                <Album className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">アルバム</p>
-                <p className="text-2xl font-semibold text-gray-900">{albumCount}</p>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{albumCount}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">アルバム</p>
               </div>
             </div>
-          </div>
+          </Link>
+
+          {/* Quick Action */}
+          <Link href="/camera" className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">写真を撮る</p>
+                <p className="text-xs text-white/70">カメラ起動</p>
+              </div>
+            </div>
+          </Link>
         </div>
+      </div>
 
-        {/* Project Management Section */}
-        <ProjectList initialProjects={initialProjects as ProjectWithCounts[]} />
-      </main>
+      {/* Recent Projects */}
+      <div className="px-4 pb-24">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">最近のプロジェクト</h2>
+          <Link href="/projects" className="text-sm text-blue-600 dark:text-blue-400">
+            すべて見る
+          </Link>
+        </div>
+        <ProjectList initialProjects={initialProjects as ProjectWithCounts[]} compact />
+      </div>
     </div>
   );
 }
