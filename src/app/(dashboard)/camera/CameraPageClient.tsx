@@ -2,19 +2,45 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, MapPin, Wifi, Image, FolderOpen, ChevronRight } from 'lucide-react';
+import { Camera, MapPin, Wifi, Image, FolderOpen, ChevronRight, Lock } from 'lucide-react';
 import { CameraView } from '@/components/camera/CameraView';
 import { CapturedPhoto } from '@/hooks/useCamera';
+
+type CameraStatus = 'checking' | 'supported' | 'not-secure' | 'not-supported';
 
 export function CameraPageClient() {
   const router = useRouter();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedPhotos, setCapturedPhotos] = useState<CapturedPhoto[]>([]);
-  const [isClient, setIsClient] = useState(false);
+  const [cameraStatus, setCameraStatus] = useState<CameraStatus>('checking');
 
-  // Check if we're on client side
+  // Check camera support on client side
   useEffect(() => {
-    setIsClient(true);
+    const checkCameraSupport = () => {
+      // Check if we're in a secure context (HTTPS or localhost)
+      const isSecureContext =
+        typeof window !== 'undefined' &&
+        (window.isSecureContext ||
+         window.location.protocol === 'https:' ||
+         window.location.hostname === 'localhost' ||
+         window.location.hostname === '127.0.0.1');
+
+      if (!isSecureContext) {
+        setCameraStatus('not-secure');
+        return;
+      }
+
+      // Check if mediaDevices API is available
+      if (typeof navigator !== 'undefined' &&
+          navigator.mediaDevices &&
+          typeof navigator.mediaDevices.getUserMedia === 'function') {
+        setCameraStatus('supported');
+      } else {
+        setCameraStatus('not-supported');
+      }
+    };
+
+    checkCameraSupport();
   }, []);
 
   const handleOpenCamera = () => {
@@ -34,11 +60,7 @@ export function CameraPageClient() {
     router.push('/projects');
   };
 
-  // Check if camera is supported
-  const isCameraSupported = isClient &&
-    typeof navigator !== 'undefined' &&
-    navigator.mediaDevices &&
-    typeof navigator.mediaDevices.getUserMedia === 'function';
+  const isCameraSupported = cameraStatus === 'supported';
 
   return (
     <>
@@ -89,7 +111,23 @@ export function CameraPageClient() {
             </button>
           </div>
 
-          {!isCameraSupported && isClient && (
+          {cameraStatus === 'not-secure' && (
+            <div className="mt-3 p-3 bg-amber-500/20 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Lock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium">HTTPSが必要です</p>
+                  <p className="text-blue-200 mt-1">
+                    カメラ機能はセキュリティ上の理由から、HTTPS接続またはlocalhostでのみ利用可能です。
+                  </p>
+                  <p className="text-blue-200 mt-1">
+                    → <span className="font-mono">http://localhost:3001/camera</span> でアクセスしてください
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          {cameraStatus === 'not-supported' && (
             <p className="mt-3 text-sm text-blue-200">
               ※ このブラウザではカメラ機能がサポートされていません
             </p>
