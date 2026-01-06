@@ -154,3 +154,9 @@ test-results/
 
 # Claude Code
 .claude/
+
+# Local SSL certificates
+certificates/
+
+# HTTPS proxy script (local dev)
+scripts/https-proxy.mjs
