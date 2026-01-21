@@ -331,3 +331,88 @@ export function mapRecordToProject(
       : undefined,
   };
 }
+
+/**
+ * メールアドレスからLarkユーザーIDを取得
+ */
+export async function getUserIdByEmail(email: string): Promise<string | null> {
+  const token = await getTenantAccessToken();
+
+  const response = await fetch(
+    `${LARK_API_BASE}/contact/v3/users/batch_get_id`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        emails: [email],
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (data.code !== 0) {
+    console.error('[Lark API] Failed to get user ID:', data.msg);
+    return null;
+  }
+
+  const userList = data.data?.user_list || [];
+  if (userList.length > 0 && userList[0].user_id) {
+    return userList[0].user_id;
+  }
+
+  return null;
+}
+
+/**
+ * Larkメッセージを送信
+ */
+export async function sendLarkMessage(
+  email: string,
+  content: string
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const token = await getTenantAccessToken();
+
+    // メールアドレスからユーザーIDを取得
+    const userId = await getUserIdByEmail(email);
+
+    if (!userId) {
+      return { success: false, message: `ユーザーが見つかりません: ${email}` };
+    }
+
+    // メッセージを送信
+    const response = await fetch(
+      `${LARK_API_BASE}/im/v1/messages?receive_id_type=user_id`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receive_id: userId,
+          msg_type: 'text',
+          content: JSON.stringify({ text: content }),
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.code !== 0) {
+      console.error('[Lark API] Failed to send message:', data.msg);
+      return { success: false, message: data.msg };
+    }
+
+    console.log('[Lark API] Message sent successfully to:', email);
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Lark API] Error sending message:', errorMessage);
+    return { success: false, message: errorMessage };
+  }
+}
