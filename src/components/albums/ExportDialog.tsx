@@ -74,7 +74,7 @@ export function ExportDialog({
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Export Album</h2>
+            <h2 className="text-xl font-bold text-gray-900">アルバムをエクスポート</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
@@ -99,7 +99,7 @@ export function ExportDialog({
             {/* Format Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                Export Format
+                エクスポート形式
               </label>
               <div className="grid grid-cols-3 gap-4">
                 <button
@@ -112,7 +112,7 @@ export function ExportDialog({
                 >
                   <div className="text-3xl mb-2">PDF</div>
                   <div className="font-medium text-gray-900">PDF</div>
-                  <div className="text-sm text-gray-500">Photo album</div>
+                  <div className="text-sm text-gray-500">フォトアルバム</div>
                 </button>
                 <button
                   onClick={() => updateOption('format', 'excel')}
@@ -124,7 +124,7 @@ export function ExportDialog({
                 >
                   <div className="text-3xl mb-2">XLS</div>
                   <div className="font-medium text-gray-900">Excel</div>
-                  <div className="text-sm text-gray-500">Data report</div>
+                  <div className="text-sm text-gray-500">データレポート</div>
                 </button>
                 <button
                   onClick={() => updateOption('format', 'zip')}
@@ -136,7 +136,7 @@ export function ExportDialog({
                 >
                   <div className="text-3xl mb-2">ZIP</div>
                   <div className="font-medium text-gray-900">ZIP</div>
-                  <div className="text-sm text-gray-500">Bulk download</div>
+                  <div className="text-sm text-gray-500">一括ダウンロード</div>
                 </button>
               </div>
             </div>
@@ -148,7 +148,7 @@ export function ExportDialog({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Paper Size
+                      用紙サイズ
                     </label>
                     <select
                       value={options.paperSize}
@@ -164,7 +164,7 @@ export function ExportDialog({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Orientation
+                      向き
                     </label>
                     <select
                       value={options.orientation}
@@ -176,8 +176,8 @@ export function ExportDialog({
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="portrait">Portrait</option>
-                      <option value="landscape">Landscape</option>
+                      <option value="portrait">縦向き</option>
+                      <option value="landscape">横向き</option>
                     </select>
                   </div>
                 </div>
@@ -185,7 +185,7 @@ export function ExportDialog({
                 {/* Layout Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Photos per Page
+                    1ページの写真数
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     {([1, 2, 4] as PhotoLayout[]).map((layout) => (
@@ -218,7 +218,7 @@ export function ExportDialog({
                           )}
                         </div>
                         <div className="text-sm text-gray-700 text-center">
-                          {layout} photo{layout > 1 ? 's' : ''}
+                          {layout}枚
                         </div>
                       </button>
                     ))}
@@ -228,7 +228,7 @@ export function ExportDialog({
                 {/* Quality */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quality
+                    品質
                   </label>
                   <select
                     value={options.quality}
@@ -237,8 +237,8 @@ export function ExportDialog({
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="standard">Standard (smaller file size)</option>
-                    <option value="high">High Quality (larger file size)</option>
+                    <option value="standard">標準（ファイルサイズ小）</option>
+                    <option value="high">高画質（ファイルサイズ大）</option>
                   </select>
                 </div>
               </>
@@ -247,7 +247,7 @@ export function ExportDialog({
             {/* Include Options */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                Include in Export
+                エクスポートに含める
               </label>
               <div className="space-y-3">
                 {options.format === 'pdf' && (
@@ -262,9 +262,9 @@ export function ExportDialog({
                         className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <div>
-                        <span className="text-gray-700">Cover Page</span>
+                        <span className="text-gray-700">表紙</span>
                         <p className="text-sm text-gray-500">
-                          Title page with project information
+                          プロジェクト情報を含むタイトルページ
                         </p>
                       </div>
                     </label>
@@ -279,9 +279,9 @@ export function ExportDialog({
                         className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <div>
-                        <span className="text-gray-700">Table of Contents</span>
+                        <span className="text-gray-700">目次</span>
                         <p className="text-sm text-gray-500">
-                          Page index for easy navigation
+                          ナビゲーション用のページインデックス
                         </p>
                       </div>
                     </label>
@@ -298,9 +298,9 @@ export function ExportDialog({
                     className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <div>
-                    <span className="text-gray-700">Blackboard Overlay</span>
+                    <span className="text-gray-700">黒板オーバーレイ</span>
                     <p className="text-sm text-gray-500">
-                      Show construction blackboard on photos
+                      写真に工事黒板を表示
                     </p>
                   </div>
                 </label>
@@ -309,34 +309,34 @@ export function ExportDialog({
 
             {/* Export Summary */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Export Summary</h4>
+              <h4 className="font-medium text-gray-900 mb-3">エクスポート概要</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">Format:</span>
+                  <span className="text-gray-500">形式:</span>
                   <span className="ml-2 text-gray-900">
                     {options.format.toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Photos:</span>
+                  <span className="text-gray-500">写真数:</span>
                   <span className="ml-2 text-gray-900">{album.photos.length}</span>
                 </div>
                 {options.format === 'pdf' && (
                   <>
                     <div>
-                      <span className="text-gray-500">Pages:</span>
+                      <span className="text-gray-500">ページ数:</span>
                       <span className="ml-2 text-gray-900">{calculatePages()}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Size:</span>
+                      <span className="text-gray-500">サイズ:</span>
                       <span className="ml-2 text-gray-900">
-                        {options.paperSize} {options.orientation}
+                        {options.paperSize} {options.orientation === 'portrait' ? '縦' : '横'}
                       </span>
                     </div>
                   </>
                 )}
                 <div>
-                  <span className="text-gray-500">Est. File Size:</span>
+                  <span className="text-gray-500">推定ファイルサイズ:</span>
                   <span className="ml-2 text-gray-900">{calculateFileSize()}</span>
                 </div>
               </div>
@@ -349,7 +349,7 @@ export function ExportDialog({
               onClick={onClose}
               className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              Cancel
+              キャンセル
             </button>
             <button
               onClick={handleExport}
@@ -377,7 +377,7 @@ export function ExportDialog({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  Exporting...
+                  エクスポート中...
                 </>
               ) : (
                 <>
@@ -394,7 +394,7 @@ export function ExportDialog({
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                     />
                   </svg>
-                  Export {options.format.toUpperCase()}
+                  {options.format.toUpperCase()}でエクスポート
                 </>
               )}
             </button>

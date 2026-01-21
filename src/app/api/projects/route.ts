@@ -75,7 +75,7 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: 'Unauthorized',
+          error: '認証が必要です',
         },
         { status: 401 }
       );
@@ -103,7 +103,7 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch projects',
+        error: 'プロジェクトの取得に失敗しました',
       },
       { status: 500 }
     );
@@ -124,7 +124,7 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          error: 'Unauthorized',
+          error: '認証が必要です',
         },
         { status: 401 }
       );
@@ -136,7 +136,7 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          error: 'Project name is required',
+          error: 'プロジェクト名は必須です',
         },
         { status: 400 }
       );
@@ -160,7 +160,7 @@ export async function POST(
     );
   } catch (error) {
     console.error('Error creating project:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create project';
+    const errorMessage = error instanceof Error ? error.message : 'プロジェクトの作成に失敗しました';
     return NextResponse.json(
       {
         success: false,

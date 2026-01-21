@@ -61,7 +61,7 @@ export function OrganizationForm({
     e.preventDefault();
 
     if (!name.trim()) {
-      setError('Organization name is required');
+      setError('組織名は必須です');
       return;
     }
 
@@ -88,12 +88,12 @@ export function OrganizationForm({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to save organization');
+        throw new Error(result.error || '組織の保存に失敗しました');
       }
 
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save organization');
+      setError(err instanceof Error ? err.message : '組織の保存に失敗しました');
     } finally {
       setLoading(false);
     }
@@ -109,7 +109,7 @@ export function OrganizationForm({
               <Building2 className="w-5 h-5 text-blue-600" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
-              {isEditing ? 'Edit Organization' : 'Create Organization'}
+              {isEditing ? '組織を編集' : '組織を作成'}
             </h2>
           </div>
           <button
@@ -134,14 +134,14 @@ export function OrganizationForm({
               htmlFor="name"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Organization Name <span className="text-red-500">*</span>
+              組織名 <span className="text-red-500">*</span>
             </label>
             <input
               id="name"
               type="text"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="My Organization"
+              placeholder="組織名を入力"
               maxLength={200}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               disabled={loading}
@@ -155,7 +155,7 @@ export function OrganizationForm({
               htmlFor="slug"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              URL Slug
+              URLスラッグ
             </label>
             <div className="flex items-center">
               <span className="text-gray-500 text-sm mr-1">/</span>
@@ -171,7 +171,7 @@ export function OrganizationForm({
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Only lowercase letters, numbers, and hyphens allowed
+              小文字、数字、ハイフンのみ使用可能
             </p>
           </div>
 
@@ -179,13 +179,13 @@ export function OrganizationForm({
           {isEditing && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Current Plan
+                現在のプラン
               </label>
               <div className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
                 {plan}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Plan changes are managed through billing settings
+                プランの変更は請求設定から行えます
               </p>
             </div>
           )}
@@ -198,7 +198,7 @@ export function OrganizationForm({
               className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               disabled={loading}
             >
-              Cancel
+              キャンセル
             </button>
             <button
               type="submit"
@@ -206,7 +206,7 @@ export function OrganizationForm({
               disabled={loading || !name.trim()}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isEditing ? 'Save Changes' : 'Create Organization'}
+              {isEditing ? '変更を保存' : '組織を作成'}
             </button>
           </div>
         </form>

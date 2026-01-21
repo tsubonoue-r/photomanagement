@@ -125,22 +125,22 @@ export const PROJECT_STATUS_CONFIG: Record<
   { label: string; color: string; bgColor: string }
 > = {
   ACTIVE: {
-    label: 'Active',
+    label: '進行中',
     color: 'text-green-800',
     bgColor: 'bg-green-100',
   },
   COMPLETED: {
-    label: 'Completed',
+    label: '完了',
     color: 'text-blue-800',
     bgColor: 'bg-blue-100',
   },
   ARCHIVED: {
-    label: 'Archived',
+    label: 'アーカイブ',
     color: 'text-gray-800',
     bgColor: 'bg-gray-100',
   },
   SUSPENDED: {
-    label: 'Suspended',
+    label: '中断',
     color: 'text-yellow-800',
     bgColor: 'bg-yellow-100',
   },

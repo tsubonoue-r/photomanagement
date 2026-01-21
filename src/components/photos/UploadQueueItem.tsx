@@ -56,7 +56,7 @@ export function UploadQueueItemComponent({
             />
           </svg>
         ),
-        label: 'Waiting',
+        label: '待機中',
         color: 'text-gray-500',
         bgColor: 'bg-gray-100 dark:bg-gray-800',
         progressColor: 'bg-gray-300',
@@ -84,7 +84,7 @@ export function UploadQueueItemComponent({
             />
           </svg>
         ),
-        label: 'Uploading',
+        label: 'アップロード中',
         color: 'text-blue-600',
         bgColor: 'bg-blue-50 dark:bg-blue-900/20',
         progressColor: 'bg-blue-500',
@@ -106,7 +106,7 @@ export function UploadQueueItemComponent({
             />
           </svg>
         ),
-        label: 'Processing',
+        label: '処理中',
         color: 'text-yellow-600',
         bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
         progressColor: 'bg-yellow-500',
@@ -128,7 +128,7 @@ export function UploadQueueItemComponent({
             />
           </svg>
         ),
-        label: 'Completed',
+        label: '完了',
         color: 'text-green-600',
         bgColor: 'bg-green-50 dark:bg-green-900/20',
         progressColor: 'bg-green-500',
@@ -150,7 +150,7 @@ export function UploadQueueItemComponent({
             />
           </svg>
         ),
-        label: 'Failed',
+        label: '失敗',
         color: 'text-red-600',
         bgColor: 'bg-red-50 dark:bg-red-900/20',
         progressColor: 'bg-red-500',
@@ -172,7 +172,7 @@ export function UploadQueueItemComponent({
             />
           </svg>
         ),
-        label: 'Cancelled',
+        label: 'キャンセル',
         color: 'text-gray-500',
         bgColor: 'bg-gray-100 dark:bg-gray-800',
         progressColor: 'bg-gray-400',
@@ -194,7 +194,7 @@ export function UploadQueueItemComponent({
             />
           </svg>
         ),
-        label: 'Duplicate',
+        label: '重複',
         color: 'text-orange-600',
         bgColor: 'bg-orange-50 dark:bg-orange-900/20',
         progressColor: 'bg-orange-500',
@@ -271,7 +271,7 @@ export function UploadQueueItemComponent({
               {item.error}
               {item.retryCount > 0 && (
                 <span className="ml-1">
-                  (Retry {item.retryCount}/{item.maxRetries})
+                  (リトライ {item.retryCount}/{item.maxRetries})
                 </span>
               )}
             </p>
@@ -279,19 +279,19 @@ export function UploadQueueItemComponent({
 
           {isDuplicate && (
             <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5">
-              This file appears to be a duplicate
+              このファイルは重複している可能性があります
             </p>
           )}
 
           {item.status === 'queued' && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Waiting in queue...
+              キューで待機中...
             </p>
           )}
 
           {item.status === 'completed' && (
             <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
-              Upload successful
+              アップロード完了
             </p>
           )}
         </div>
@@ -305,8 +305,8 @@ export function UploadQueueItemComponent({
               onClick={() => onSkipDuplicate(item.id)}
               className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
                        rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              aria-label="Skip duplicate"
-              title="Skip"
+              aria-label="重複をスキップ"
+              title="スキップ"
             >
               <svg
                 className="w-4 h-4"
@@ -326,8 +326,8 @@ export function UploadQueueItemComponent({
               onClick={() => onReplaceDuplicate(item.id)}
               className="p-1.5 text-orange-500 hover:text-orange-600 dark:hover:text-orange-400
                        rounded-md hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
-              aria-label="Upload anyway"
-              title="Upload Anyway"
+              aria-label="それでもアップロード"
+              title="アップロード"
             >
               <svg
                 className="w-4 h-4"
@@ -351,8 +351,8 @@ export function UploadQueueItemComponent({
             onClick={() => onRetry(item.id)}
             className="p-1.5 text-blue-500 hover:text-blue-600 dark:hover:text-blue-400
                      rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-            aria-label="Retry upload"
-            title="Retry"
+            aria-label="再試行"
+            title="再試行"
           >
             <svg
               className="w-4 h-4"
@@ -375,8 +375,8 @@ export function UploadQueueItemComponent({
             onClick={() => onCancel(item.id)}
             className="p-1.5 text-red-400 hover:text-red-600 dark:hover:text-red-400
                      rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-            aria-label="Cancel upload"
-            title="Cancel"
+            aria-label="キャンセル"
+            title="キャンセル"
           >
             <svg
               className="w-4 h-4"
@@ -399,8 +399,8 @@ export function UploadQueueItemComponent({
             onClick={() => onRemove(item.id)}
             className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
                      rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            aria-label="Remove from list"
-            title="Remove"
+            aria-label="リストから削除"
+            title="削除"
           >
             <svg
               className="w-4 h-4"

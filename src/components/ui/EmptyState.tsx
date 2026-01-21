@@ -64,33 +64,33 @@ const presets: Record<
 > = {
   'no-data': {
     icon: FileQuestion,
-    title: 'No data available',
-    description: 'There is no data to display at this time.',
+    title: 'データがありません',
+    description: '表示するデータがありません。',
   },
   'no-photos': {
     icon: Image,
-    title: 'No photos yet',
-    description: 'Upload your first photo to get started.',
+    title: '写真がありません',
+    description: '写真をアップロードして始めましょう。',
   },
   'no-projects': {
     icon: FolderOpen,
-    title: 'No projects found',
-    description: 'Create a new project to organize your photos.',
+    title: 'プロジェクトがありません',
+    description: '新しいプロジェクトを作成して写真を整理しましょう。',
   },
   'no-results': {
     icon: Search,
-    title: 'No results found',
-    description: 'Try adjusting your search or filters.',
+    title: '結果が見つかりません',
+    description: '検索条件やフィルターを変更してお試しください。',
   },
   'no-members': {
     icon: Users,
-    title: 'No team members',
-    description: 'Invite team members to collaborate on this project.',
+    title: 'メンバーがいません',
+    description: 'チームメンバーを招待して共同作業しましょう。',
   },
   error: {
     icon: AlertCircle,
-    title: 'Something went wrong',
-    description: 'An error occurred while loading data. Please try again.',
+    title: 'エラーが発生しました',
+    description: 'データの読み込み中にエラーが発生しました。もう一度お試しください。',
   },
 };
 
@@ -163,7 +163,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   const preset = type !== 'custom' ? presets[type] : null;
   const Icon = icon || preset?.icon || FileQuestion;
-  const displayTitle = title || preset?.title || 'No data';
+  const displayTitle = title || preset?.title || 'データがありません';
   const displayDescription = description || preset?.description || '';
   const config = sizeConfig[size];
 
@@ -303,12 +303,12 @@ export function EmptyStateSearch({
   return (
     <EmptyState
       type="no-results"
-      title={query ? `No results for "${query}"` : 'No results found'}
-      description="Try different keywords or remove some filters."
+      title={query ? `"${query}" の検索結果はありません` : '結果が見つかりません'}
+      description="別のキーワードを試すか、フィルターを削除してください。"
       secondaryAction={
         onClear
           ? {
-              label: 'Clear search',
+              label: '検索をクリア',
               onClick: onClear,
             }
           : undefined
@@ -350,11 +350,11 @@ export function EmptyStateError({
   return (
     <EmptyState
       type="error"
-      description={message || 'An error occurred while loading data.'}
+      description={message || 'データの読み込み中にエラーが発生しました。'}
       action={
         onRetry
           ? {
-              label: 'Try again',
+              label: '再試行',
               onClick: onRetry,
             }
           : undefined

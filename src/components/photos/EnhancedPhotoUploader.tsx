@@ -170,7 +170,7 @@ export function EnhancedPhotoUploader({
                         : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/50'
                     }
                   `}
-                  aria-label={isPaused ? 'Resume uploads' : 'Pause uploads'}
+                  aria-label={isPaused ? '再開' : '一時停止'}
                 >
                   {isPaused ? (
                     <>
@@ -193,7 +193,7 @@ export function EnhancedPhotoUploader({
                           d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      Resume
+                      再開
                     </>
                   ) : (
                     <>
@@ -210,7 +210,7 @@ export function EnhancedPhotoUploader({
                           d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      Pause
+                      一時停止
                     </>
                   )}
                 </button>
@@ -224,7 +224,7 @@ export function EnhancedPhotoUploader({
                            bg-red-100 text-red-700 hover:bg-red-200
                            dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50
                            transition-colors duration-150"
-                  aria-label="Cancel all uploads"
+                  aria-label="全てキャンセル"
                 >
                   <svg
                     className="w-4 h-4"
@@ -239,7 +239,7 @@ export function EnhancedPhotoUploader({
                       d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                  Cancel All
+                  全てキャンセル
                 </button>
               )}
 
@@ -251,7 +251,7 @@ export function EnhancedPhotoUploader({
                            bg-blue-100 text-blue-700 hover:bg-blue-200
                            dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50
                            transition-colors duration-150"
-                  aria-label="Retry all failed uploads"
+                  aria-label="失敗した全てを再試行"
                 >
                   <svg
                     className="w-4 h-4"
@@ -266,7 +266,7 @@ export function EnhancedPhotoUploader({
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                     />
                   </svg>
-                  Retry Failed ({stats.failed})
+                  失敗を再試行 ({stats.failed})
                 </button>
               )}
             </div>
@@ -281,7 +281,7 @@ export function EnhancedPhotoUploader({
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                       : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                   }`}
-                  aria-label="Detailed view"
+                  aria-label="詳細表示"
                   aria-pressed={viewMode === 'detailed'}
                 >
                   <svg
@@ -305,7 +305,7 @@ export function EnhancedPhotoUploader({
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                       : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                   }`}
-                  aria-label="Compact view"
+                  aria-label="コンパクト表示"
                   aria-pressed={viewMode === 'compact'}
                 >
                   <svg
@@ -333,7 +333,7 @@ export function EnhancedPhotoUploader({
                       className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700
                                dark:text-gray-400 dark:hover:text-gray-200"
                     >
-                      Clear completed
+                      完了をクリア
                     </button>
                   )}
                   {stats.failed > 0 && (
@@ -342,7 +342,7 @@ export function EnhancedPhotoUploader({
                       className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700
                                dark:text-gray-400 dark:hover:text-gray-200"
                     >
-                      Clear failed
+                      失敗をクリア
                     </button>
                   )}
                   <button
@@ -350,7 +350,7 @@ export function EnhancedPhotoUploader({
                     className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700
                              dark:text-gray-400 dark:hover:text-gray-200"
                   >
-                    Clear all
+                    全てクリア
                   </button>
                 </div>
               )}
@@ -377,7 +377,7 @@ export function EnhancedPhotoUploader({
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                       />
                     </svg>
-                    Duplicates Detected ({duplicateItems.length})
+                    重複検出 ({duplicateItems.length})
                   </h3>
                   <div className="space-y-1.5" role="list" aria-label="Duplicate files">
                     {duplicateItems.map((item) => (
@@ -400,7 +400,7 @@ export function EnhancedPhotoUploader({
               {activeItems.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Uploading ({activeItems.length})
+                    アップロード中 ({activeItems.length})
                   </h3>
                   <div className="space-y-1.5" role="list" aria-label="Uploading files">
                     {activeItems.map((item) => (
@@ -436,7 +436,7 @@ export function EnhancedPhotoUploader({
                         d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    Failed ({errorItems.length})
+                    失敗 ({errorItems.length})
                   </h3>
                   <div className="space-y-1.5" role="list" aria-label="Failed uploads">
                     {errorItems.map((item) => (
@@ -472,7 +472,7 @@ export function EnhancedPhotoUploader({
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    Completed ({completedItems.length})
+                    完了 ({completedItems.length})
                   </h3>
                   <div className="space-y-1.5" role="list" aria-label="Completed uploads">
                     {completedItems.slice(0, 5).map((item) => (
@@ -489,7 +489,7 @@ export function EnhancedPhotoUploader({
                     ))}
                     {completedItems.length > 5 && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
-                        ...and {completedItems.length - 5} more completed
+                        ...他 {completedItems.length - 5} 件完了
                       </p>
                     )}
                   </div>
@@ -581,7 +581,7 @@ export function EnhancedPhotoUploader({
       {showPreview && uploadedPhotos.length > 0 && !hasItems && (
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Uploaded Photos ({uploadedPhotos.length})
+            アップロード済み写真 ({uploadedPhotos.length})
           </h3>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
             {uploadedPhotos.map((photo) => (
@@ -630,19 +630,17 @@ export function EnhancedPhotoUploader({
                 id="duplicate-warning-title"
                 className="text-lg font-semibold text-gray-900 dark:text-gray-100"
               >
-                Duplicate File Detected
+                重複ファイルを検出
               </h2>
             </div>
 
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              The file <strong>{showDuplicateWarning.item.filename}</strong> appears
-              to be a duplicate of an existing file
+              ファイル <strong>{showDuplicateWarning.item.filename}</strong> は既存のファイルと重複している可能性があります
               {showDuplicateWarning.original.originalFilename && (
                 <>
                   : <strong>{showDuplicateWarning.original.originalFilename}</strong>
                 </>
               )}
-              .
             </p>
 
             <div className="flex items-center gap-3 justify-end">
@@ -653,7 +651,7 @@ export function EnhancedPhotoUploader({
                          hover:bg-gray-200 dark:hover:bg-gray-600
                          transition-colors"
               >
-                Skip
+                スキップ
               </button>
               <button
                 onClick={handleReplaceDuplicate}
@@ -661,7 +659,7 @@ export function EnhancedPhotoUploader({
                          bg-orange-500 rounded-lg hover:bg-orange-600
                          transition-colors"
               >
-                Upload Anyway
+                アップロード
               </button>
             </div>
           </div>

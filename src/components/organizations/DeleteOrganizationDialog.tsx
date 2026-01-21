@@ -43,13 +43,13 @@ export function DeleteOrganizationDialog({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to delete organization');
+        throw new Error(result.error || '組織の削除に失敗しました');
       }
 
       onConfirm();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to delete organization'
+        err instanceof Error ? err.message : '組織の削除に失敗しました'
       );
     } finally {
       setLoading(false);
@@ -66,7 +66,7 @@ export function DeleteOrganizationDialog({
               <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
-              Delete Organization
+              組織を削除
             </h2>
           </div>
           <button
@@ -87,30 +87,29 @@ export function DeleteOrganizationDialog({
 
           <div className="bg-yellow-50 border border-yellow-200 px-4 py-3 rounded-lg">
             <p className="text-sm text-yellow-800">
-              <strong>Warning:</strong> This action cannot be undone. Deleting
-              this organization will permanently remove:
+              <strong>警告:</strong> この操作は取り消せません。この組織を削除すると、以下のデータが完全に削除されます：
             </p>
             <ul className="mt-2 text-sm text-yellow-700 list-disc list-inside space-y-1">
-              <li>All {organization._count.projects} projects</li>
-              <li>All photos and albums</li>
-              <li>All member associations</li>
-              <li>All organization settings</li>
+              <li>全 {organization._count.projects} プロジェクト</li>
+              <li>全ての写真とアルバム</li>
+              <li>全てのメンバー関連付け</li>
+              <li>全ての組織設定</li>
             </ul>
           </div>
 
           <p className="text-gray-600">
-            To confirm, please type{' '}
+            確認のため、以下に{' '}
             <span className="font-semibold text-gray-900">
               {organization.name}
             </span>{' '}
-            below:
+            と入力してください：
           </p>
 
           <input
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
-            placeholder="Type organization name to confirm"
+            placeholder="組織名を入力して確認"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             disabled={loading}
           />
@@ -123,7 +122,7 @@ export function DeleteOrganizationDialog({
               className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               disabled={loading}
             >
-              Cancel
+              キャンセル
             </button>
             <button
               type="button"
@@ -132,7 +131,7 @@ export function DeleteOrganizationDialog({
               disabled={loading || !isConfirmValid}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Delete Organization
+              組織を削除
             </button>
           </div>
         </div>
