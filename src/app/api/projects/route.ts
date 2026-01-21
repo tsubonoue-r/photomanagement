@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 import { getAllProjects, createProject } from '@/lib/project/project-service';
 import type {
   CreateProjectInput,
@@ -15,6 +16,50 @@ import type {
   ProjectListResponse
 } from '@/types/project';
 import type { ProjectStatus } from '@prisma/client';
+
+/**
+ * Get or create default organization for user
+ */
+async function getOrCreateOrganization(userId: string): Promise<string> {
+  // Check if user has an organization membership
+  const membership = await prisma.organizationMember.findFirst({
+    where: { userId },
+    select: { organizationId: true },
+  });
+
+  if (membership) {
+    return membership.organizationId;
+  }
+
+  // Create default organization if none exists
+  const defaultOrg = await prisma.organization.upsert({
+    where: { slug: 'default' },
+    update: {},
+    create: {
+      name: 'デフォルト組織',
+      slug: 'default',
+      plan: 'FREE',
+    },
+  });
+
+  // Add user to the organization (use upsert to handle duplicates)
+  await prisma.organizationMember.upsert({
+    where: {
+      organizationId_userId: {
+        organizationId: defaultOrg.id,
+        userId,
+      },
+    },
+    update: {},
+    create: {
+      organizationId: defaultOrg.id,
+      userId,
+      role: 'OWNER',
+    },
+  });
+
+  return defaultOrg.id;
+}
 
 /**
  * GET /api/projects
@@ -97,9 +142,9 @@ export async function POST(
       );
     }
 
-    // Use a default organization ID for now
-    // In production, this would come from the user's session/membership
-    const organizationId = 'default-org';
+    // Get or create organization for user
+    const organizationId = await getOrCreateOrganization(session.user.id as string);
+    console.log('Creating project with organizationId:', organizationId);
 
     const project = await createProject(organizationId, {
       ...body,
@@ -115,10 +160,11 @@ export async function POST(
     );
   } catch (error) {
     console.error('Error creating project:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create project';
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to create project',
+        error: errorMessage,
       },
       { status: 500 }
     );

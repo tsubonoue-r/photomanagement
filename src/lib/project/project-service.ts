@@ -160,6 +160,12 @@ export async function createProject(
       startDate: input.startDate ? new Date(input.startDate) : null,
       endDate: input.endDate ? new Date(input.endDate) : null,
       status: input.status || 'ACTIVE',
+      // 新フィールド
+      salesPerson: input.salesPerson || null,
+      constructionName: input.constructionName || null,
+      steelFabricationCategory: input.steelFabricationCategory || null,
+      membraneFabricationCategory: input.membraneFabricationCategory || null,
+      constructionPhoto: input.constructionPhoto || null,
     },
     include: {
       _count: {
@@ -206,6 +212,12 @@ export async function updateProject(
         endDate: input.endDate ? new Date(input.endDate) : null,
       }),
       ...(input.status !== undefined && { status: input.status }),
+      // 新フィールド
+      ...(input.salesPerson !== undefined && { salesPerson: input.salesPerson || null }),
+      ...(input.constructionName !== undefined && { constructionName: input.constructionName || null }),
+      ...(input.steelFabricationCategory !== undefined && { steelFabricationCategory: input.steelFabricationCategory || null }),
+      ...(input.membraneFabricationCategory !== undefined && { membraneFabricationCategory: input.membraneFabricationCategory || null }),
+      ...(input.constructionPhoto !== undefined && { constructionPhoto: input.constructionPhoto || null }),
     },
     include: {
       _count: {
