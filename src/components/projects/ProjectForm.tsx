@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Database } from 'lucide-react';
 import type { ProjectWithCounts, CreateProjectInput, UpdateProjectInput } from '@/types/project';
 import type { ProjectStatus } from '@prisma/client';
+import { LarkBaseImportDialog } from './LarkBaseImportDialog';
+import type { LarkProjectData } from '@/lib/lark/types';
 
 interface ProjectFormProps {
   project?: ProjectWithCounts | null;
@@ -38,6 +40,10 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Lark Base import state
+  const [showLarkImport, setShowLarkImport] = useState(false);
+  const [larkConfigured, setLarkConfigured] = useState(false);
+
   // Initialize form with project data when editing
   useEffect(() => {
     if (project) {
@@ -52,6 +58,28 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
       setStatus(project.status);
     }
   }, [project]);
+
+  // Check if Lark Base is configured
+  useEffect(() => {
+    if (!isEditing) {
+      fetch('/api/lark/config')
+        .then((res) => res.json())
+        .then((data) => setLarkConfigured(data.data?.configured || false))
+        .catch(() => setLarkConfigured(false));
+    }
+  }, [isEditing]);
+
+  // Handle Lark Base import
+  const handleLarkImport = (data: LarkProjectData) => {
+    setName(data.name);
+    setCode(data.code || '');
+    setDescription(data.description || '');
+    setClientName(data.clientName || '');
+    setContractorName(data.contractorName || '');
+    setLocation(data.location || '');
+    setStartDate(data.startDate || '');
+    setEndDate(data.endDate || '');
+  };
 
   // Format date for input[type="date"]
   function formatDateForInput(date: Date | string): string {
@@ -145,6 +173,26 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                 <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
+            {/* Lark Base Import Button */}
+            {!isEditing && larkConfigured && (
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Lark Baseから案件をインポート</p>
+                    <p className="text-xs text-gray-500 mt-1">Lark Baseの案件一覧から情報を取り込めます</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowLarkImport(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    <Database className="w-4 h-4" />
+                    インポート
+                  </button>
+                </div>
               </div>
             )}
 
@@ -327,6 +375,15 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
           </form>
         </div>
       </div>
+
+      {/* Lark Base Import Dialog */}
+      {showLarkImport && (
+        <LarkBaseImportDialog
+          isOpen={showLarkImport}
+          onClose={() => setShowLarkImport(false)}
+          onImport={handleLarkImport}
+        />
+      )}
     </>
   );
 }
