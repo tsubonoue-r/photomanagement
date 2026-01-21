@@ -203,17 +203,19 @@ function extractFieldValue(
 
 /**
  * デフォルトのフィールドマッピング
+ * Lark Baseフィールド名 → プロジェクト項目
  */
 export function getDefaultMapping(): LarkProjectMapping {
   return {
-    nameField: process.env.LARK_FIELD_NAME || '品名',
-    codeField: process.env.LARK_FIELD_CODE || '整番',
-    clientNameField: process.env.LARK_FIELD_CLIENT || '発注者',
-    contractorNameField: process.env.LARK_FIELD_CONTRACTOR || '施工者',
-    locationField: process.env.LARK_FIELD_LOCATION || '工事場所',
-    startDateField: process.env.LARK_FIELD_START_DATE || '着工日',
-    endDateField: process.env.LARK_FIELD_END_DATE || '完工日',
-    descriptionField: process.env.LARK_FIELD_DESCRIPTION || '品名2',
+    codeField: '整番',                              // 整番
+    nameField: '品名',                              // 案件名 (品名)
+    nameField2: '品名2',                            // 案件名 (品名2) - 連結
+    salesPersonField: '担当者LU',                   // 営業担当者
+    contractorNameField: '施工者',                  // 施工者
+    constructionNameField: '◆工事項目',            // 工事名
+    steelFabricationCategoryField: '鉄骨製作区分', // 鉄骨製作区分
+    membraneFabricationCategoryField: '膜製作区分', // 膜製作区分
+    constructionPhotoField: '◆工程写真',           // 工程写真
   };
 }
 
@@ -221,38 +223,7 @@ export function getDefaultMapping(): LarkProjectMapping {
  * 検索対象フィールド名を取得
  */
 export function getSearchFields(): string[] {
-  return [
-    process.env.LARK_FIELD_CODE || '整番',
-    process.env.LARK_FIELD_NAME || '品名',
-    process.env.LARK_FIELD_DESCRIPTION || '品名2',
-  ];
-}
-
-/**
- * Lark Baseレコードから最初に見つかった有効な値を名前として使用
- */
-function findNameFromRecord(fields: Record<string, unknown>, mapping: LarkProjectMapping): string {
-  // まずマッピングで指定されたフィールドを試す
-  const mappedName = extractFieldValue(fields[mapping.nameField]);
-  if (mappedName) return mappedName;
-
-  // 一般的な名前フィールドを試す
-  const commonNameFields = ['案件名', '名前', '名称', 'name', 'Name', 'title', 'Title', '件名'];
-  for (const fieldName of commonNameFields) {
-    const value = extractFieldValue(fields[fieldName]);
-    if (value) return value;
-  }
-
-  // 最初のテキストフィールドを使用
-  for (const [key, value] of Object.entries(fields)) {
-    const extracted = extractFieldValue(value);
-    if (extracted && extracted.length > 0) {
-      console.log(`[Lark] Using field "${key}" as name: ${extracted}`);
-      return extracted;
-    }
-  }
-
-  return `レコード ${Date.now()}`;
+  return ['整番', '品名', '品名2'];
 }
 
 /**
@@ -266,17 +237,32 @@ export function mapRecordToProject(
 
   console.log('[Lark] Record fields:', Object.keys(fields));
 
-  const name = findNameFromRecord(fields, mapping);
+  // 案件名 = 品名 + 品名2 を連結
+  const name1 = extractFieldValue(fields[mapping.nameField]) || '';
+  const name2 = mapping.nameField2 ? extractFieldValue(fields[mapping.nameField2]) || '' : '';
+  const name = [name1, name2].filter(Boolean).join(' ') || `レコード ${record.record_id}`;
 
   return {
     recordId: record.record_id,
+    code: extractFieldValue(fields[mapping.codeField]) || undefined,
     name,
-    code: extractFieldValue(fields[mapping.codeField || '']) || undefined,
-    clientName: extractFieldValue(fields[mapping.clientNameField || '']) || undefined,
-    contractorName: extractFieldValue(fields[mapping.contractorNameField || '']) || undefined,
-    location: extractFieldValue(fields[mapping.locationField || '']) || undefined,
-    startDate: extractFieldValue(fields[mapping.startDateField || '']) || undefined,
-    endDate: extractFieldValue(fields[mapping.endDateField || '']) || undefined,
-    description: extractFieldValue(fields[mapping.descriptionField || '']) || undefined,
+    salesPerson: mapping.salesPersonField
+      ? extractFieldValue(fields[mapping.salesPersonField]) || undefined
+      : undefined,
+    contractorName: mapping.contractorNameField
+      ? extractFieldValue(fields[mapping.contractorNameField]) || undefined
+      : undefined,
+    constructionName: mapping.constructionNameField
+      ? extractFieldValue(fields[mapping.constructionNameField]) || undefined
+      : undefined,
+    steelFabricationCategory: mapping.steelFabricationCategoryField
+      ? extractFieldValue(fields[mapping.steelFabricationCategoryField]) || undefined
+      : undefined,
+    membraneFabricationCategory: mapping.membraneFabricationCategoryField
+      ? extractFieldValue(fields[mapping.membraneFabricationCategoryField]) || undefined
+      : undefined,
+    constructionPhoto: mapping.constructionPhotoField
+      ? extractFieldValue(fields[mapping.constructionPhotoField]) || undefined
+      : undefined,
   };
 }

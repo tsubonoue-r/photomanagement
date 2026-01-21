@@ -16,24 +16,28 @@ interface ProjectFormProps {
 /**
  * Project Form Component
  *
- * Provides a modal form for creating/editing projects with:
- * - Basic info (name, code, description)
- * - Client and contractor details
- * - Location and date range
- * - Status selection
+ * フィールド:
+ * - 整番 (code)
+ * - 案件名 (name) ← Lark: 品名+品名2
+ * - 営業担当者 (salesPerson) ← Lark: 担当者LU
+ * - 施工者 (contractorName)
+ * - 工事名 (constructionName) ← Lark: ◆工事項目
+ * - 鉄骨製作区分 (steelFabricationCategory)
+ * - 膜製作区分 (membraneFabricationCategory)
+ * - 工程写真 (constructionPhoto) ← Lark: ◆工程写真
  */
 export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
   const isEditing = !!project;
 
-  // Form state
-  const [name, setName] = useState('');
-  const [code, setCode] = useState('');
-  const [description, setDescription] = useState('');
-  const [clientName, setClientName] = useState('');
-  const [contractorName, setContractorName] = useState('');
-  const [location, setLocation] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  // Form state - 新しいフィールド構成
+  const [code, setCode] = useState('');                                    // 整番
+  const [name, setName] = useState('');                                    // 案件名
+  const [salesPerson, setSalesPerson] = useState('');                      // 営業担当者
+  const [contractorName, setContractorName] = useState('');                // 施工者
+  const [constructionName, setConstructionName] = useState('');            // 工事名
+  const [steelFabricationCategory, setSteelFabricationCategory] = useState(''); // 鉄骨製作区分
+  const [membraneFabricationCategory, setMembraneFabricationCategory] = useState(''); // 膜製作区分
+  const [constructionPhoto, setConstructionPhoto] = useState('');          // 工程写真
   const [status, setStatus] = useState<ProjectStatus>('ACTIVE');
 
   // UI state
@@ -47,14 +51,14 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
   // Initialize form with project data when editing
   useEffect(() => {
     if (project) {
-      setName(project.name);
       setCode(project.code || '');
-      setDescription(project.description || '');
-      setClientName(project.clientName || '');
+      setName(project.name);
+      setSalesPerson(project.salesPerson || '');
       setContractorName(project.contractorName || '');
-      setLocation(project.location || '');
-      setStartDate(project.startDate ? formatDateForInput(project.startDate) : '');
-      setEndDate(project.endDate ? formatDateForInput(project.endDate) : '');
+      setConstructionName(project.constructionName || '');
+      setSteelFabricationCategory(project.steelFabricationCategory || '');
+      setMembraneFabricationCategory(project.membraneFabricationCategory || '');
+      setConstructionPhoto(project.constructionPhoto || '');
       setStatus(project.status);
     }
   }, [project]);
@@ -71,21 +75,15 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
 
   // Handle Lark Base import
   const handleLarkImport = (data: LarkProjectData) => {
-    setName(data.name);
     setCode(data.code || '');
-    setDescription(data.description || '');
-    setClientName(data.clientName || '');
+    setName(data.name);
+    setSalesPerson(data.salesPerson || '');
     setContractorName(data.contractorName || '');
-    setLocation(data.location || '');
-    setStartDate(data.startDate || '');
-    setEndDate(data.endDate || '');
+    setConstructionName(data.constructionName || '');
+    setSteelFabricationCategory(data.steelFabricationCategory || '');
+    setMembraneFabricationCategory(data.membraneFabricationCategory || '');
+    setConstructionPhoto(data.constructionPhoto || '');
   };
-
-  // Format date for input[type="date"]
-  function formatDateForInput(date: Date | string): string {
-    const d = new Date(date);
-    return d.toISOString().split('T')[0];
-  }
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,7 +91,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
     setError(null);
 
     if (!name.trim()) {
-      setError('プロジェクト名は必須です');
+      setError('案件名は必須です');
       return;
     }
 
@@ -101,14 +99,14 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
       setSaving(true);
 
       const payload: CreateProjectInput | UpdateProjectInput = {
-        name: name.trim(),
         code: code.trim() || undefined,
-        description: description.trim() || undefined,
-        clientName: clientName.trim() || undefined,
+        name: name.trim(),
+        salesPerson: salesPerson.trim() || undefined,
         contractorName: contractorName.trim() || undefined,
-        location: location.trim() || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        constructionName: constructionName.trim() || undefined,
+        steelFabricationCategory: steelFabricationCategory.trim() || undefined,
+        membraneFabricationCategory: membraneFabricationCategory.trim() || undefined,
+        constructionPhoto: constructionPhoto.trim() || undefined,
         status,
       };
 
@@ -178,16 +176,16 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
 
             {/* Lark Base Import Button */}
             {!isEditing && larkConfigured && (
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Lark Baseから案件をインポート</p>
-                    <p className="text-xs text-gray-500 mt-1">Lark Baseの案件一覧から情報を取り込めます</p>
+                    <p className="text-sm font-medium text-blue-700">Lark Baseから案件をインポート</p>
+                    <p className="text-xs text-blue-600 mt-1">整番・品名・品名2で検索できます</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowLarkImport(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     <Database className="w-4 h-4" />
                     インポート
@@ -196,43 +194,29 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
               </div>
             )}
 
-            {/* Basic Info Section */}
+            {/* 基本情報 */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
                 基本情報
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    プロジェクト名 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="プロジェクト名を入力"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    autoFocus
-                  />
-                </div>
-
+                {/* 整番 */}
                 <div>
                   <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
-                    プロジェクトコード
+                    整番
                   </label>
                   <input
                     type="text"
                     id="code"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    placeholder="例: PRJ-001"
+                    placeholder="整番を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
+                {/* ステータス */}
                 <div>
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                     ステータス
@@ -251,105 +235,131 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                   </select>
                 </div>
 
+                {/* 案件名 */}
                 <div className="md:col-span-2">
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                    説明
-                  </label>
-                  <textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="プロジェクトの説明を入力"
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Client Info Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
-                発注者・施工者情報
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 mb-1">
-                    発注者名
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    案件名 <span className="text-red-500">*</span>
+                    <span className="text-xs text-gray-500 ml-2">(Lark: 品名+品名2)</span>
                   </label>
                   <input
                     type="text"
-                    id="clientName"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="発注者名を入力"
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="案件名を入力"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                {/* 営業担当者 */}
+                <div>
+                  <label htmlFor="salesPerson" className="block text-sm font-medium text-gray-700 mb-1">
+                    営業担当者
+                    <span className="text-xs text-gray-500 ml-2">(Lark: 担当者LU)</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="salesPerson"
+                    value={salesPerson}
+                    onChange={(e) => setSalesPerson(e.target.value)}
+                    placeholder="営業担当者を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
+                {/* 施工者 */}
                 <div>
                   <label htmlFor="contractorName" className="block text-sm font-medium text-gray-700 mb-1">
-                    施工者名
+                    施工者
                   </label>
                   <input
                     type="text"
                     id="contractorName"
                     value={contractorName}
                     onChange={(e) => setContractorName(e.target.value)}
-                    placeholder="施工者名を入力"
+                    placeholder="施工者を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
+                {/* 工事名 */}
                 <div className="md:col-span-2">
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                    工事場所
+                  <label htmlFor="constructionName" className="block text-sm font-medium text-gray-700 mb-1">
+                    工事名
+                    <span className="text-xs text-gray-500 ml-2">(Lark: ◆工事項目)</span>
                   </label>
                   <input
                     type="text"
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="工事場所を入力"
+                    id="constructionName"
+                    value={constructionName}
+                    onChange={(e) => setConstructionName(e.target.value)}
+                    placeholder="工事名を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Schedule Section */}
+            {/* 製作区分 */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
-                工期
+                製作区分
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 鉄骨製作区分 */}
                 <div>
-                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    開始日
+                  <label htmlFor="steelFabricationCategory" className="block text-sm font-medium text-gray-700 mb-1">
+                    鉄骨製作区分
                   </label>
                   <input
-                    type="date"
-                    id="startDate"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    type="text"
+                    id="steelFabricationCategory"
+                    value={steelFabricationCategory}
+                    onChange={(e) => setSteelFabricationCategory(e.target.value)}
+                    placeholder="鉄骨製作区分を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
+                {/* 膜製作区分 */}
                 <div>
-                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    終了日
+                  <label htmlFor="membraneFabricationCategory" className="block text-sm font-medium text-gray-700 mb-1">
+                    膜製作区分
                   </label>
                   <input
-                    type="date"
-                    id="endDate"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    type="text"
+                    id="membraneFabricationCategory"
+                    value={membraneFabricationCategory}
+                    onChange={(e) => setMembraneFabricationCategory(e.target.value)}
+                    placeholder="膜製作区分を入力"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* 工程写真 */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
+                工程写真
+              </h3>
+
+              <div>
+                <label htmlFor="constructionPhoto" className="block text-sm font-medium text-gray-700 mb-1">
+                  工程写真
+                  <span className="text-xs text-gray-500 ml-2">(Lark: ◆工程写真)</span>
+                </label>
+                <input
+                  type="text"
+                  id="constructionPhoto"
+                  value={constructionPhoto}
+                  onChange={(e) => setConstructionPhoto(e.target.value)}
+                  placeholder="工程写真の情報を入力"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
               </div>
             </div>
 

@@ -178,19 +178,25 @@ model OrganizationInvitation {
 // =============================================================================
 
 model Project {
-  id             String        @id @default(cuid())
-  organizationId String        @map("organization_id")
-  name           String        @db.VarChar(200)
-  code           String?       @unique @db.VarChar(50)
-  description    String?       @db.Text
-  clientName     String?       @map("client_name") @db.VarChar(200)
-  contractorName String?       @map("contractor_name") @db.VarChar(200)
-  location       String?       @db.Text
-  startDate      DateTime?     @map("start_date") @db.Date
-  endDate        DateTime?     @map("end_date") @db.Date
-  status         ProjectStatus @default(ACTIVE)
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
+  id                          String        @id @default(cuid())
+  organizationId              String        @map("organization_id")
+  name                        String        @db.VarChar(200)                    // 案件名 (品名+品名2)
+  code                        String?       @unique @db.VarChar(50)             // 整番
+  description                 String?       @db.Text
+  clientName                  String?       @map("client_name") @db.VarChar(200)
+  contractorName              String?       @map("contractor_name") @db.VarChar(200) // 施工者
+  location                    String?       @db.Text
+  startDate                   DateTime?     @map("start_date") @db.Date
+  endDate                     DateTime?     @map("end_date") @db.Date
+  status                      ProjectStatus @default(ACTIVE)
+  // 新規フィールド
+  salesPerson                 String?       @map("sales_person") @db.VarChar(200)           // 営業担当者 (担当者LU)
+  constructionName            String?       @map("construction_name") @db.VarChar(500)      // 工事名 (◆工事項目)
+  steelFabricationCategory    String?       @map("steel_fabrication_category") @db.VarChar(100)  // 鉄骨製作区分
+  membraneFabricationCategory String?       @map("membrane_fabrication_category") @db.VarChar(100) // 膜製作区分
+  constructionPhoto           String?       @map("construction_photo") @db.VarChar(200)     // 工程写真 (◆工程写真)
+  createdAt                   DateTime      @default(now()) @map("created_at")
+  updatedAt                   DateTime      @updatedAt @map("updated_at")
 
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   members      ProjectMember[]

@@ -75,29 +75,30 @@ export interface LarkSort {
   desc?: boolean;
 }
 
-// プロジェクトフィールドマッピング
+// プロジェクトフィールドマッピング (Lark Baseフィールド名)
 export interface LarkProjectMapping {
-  nameField: string;
-  codeField?: string;
-  clientNameField?: string;
-  contractorNameField?: string;
-  locationField?: string;
-  startDateField?: string;
-  endDateField?: string;
-  descriptionField?: string;
+  codeField: string;                        // 整番
+  nameField: string;                        // 品名
+  nameField2?: string;                      // 品名2
+  salesPersonField?: string;                // 担当者LU
+  contractorNameField?: string;             // 施工者
+  constructionNameField?: string;           // ◆工事項目
+  steelFabricationCategoryField?: string;   // 鉄骨製作区分
+  membraneFabricationCategoryField?: string; // 膜製作区分
+  constructionPhotoField?: string;          // ◆工程写真
 }
 
 // PhotoManagement用プロジェクトデータ
 export interface LarkProjectData {
   recordId: string;
-  name: string;
-  code?: string;
-  clientName?: string;
-  contractorName?: string;
-  location?: string;
-  startDate?: string;
-  endDate?: string;
-  description?: string;
+  code?: string;                        // 整番
+  name: string;                         // 案件名 (品名+品名2)
+  salesPerson?: string;                 // 営業担当者 (担当者LU)
+  contractorName?: string;              // 施工者
+  constructionName?: string;            // 工事名 (◆工事項目)
+  steelFabricationCategory?: string;    // 鉄骨製作区分
+  membraneFabricationCategory?: string; // 膜製作区分
+  constructionPhoto?: string;           // 工程写真 (◆工程写真)
 }
 
 // APIレスポンス

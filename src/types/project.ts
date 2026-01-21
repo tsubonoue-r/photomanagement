@@ -11,15 +11,21 @@ import type { ProjectStatus } from '@prisma/client';
 export interface Project {
   id: string;
   organizationId: string;
-  name: string;
-  code: string | null;
+  name: string;                              // 案件名 (品名+品名2)
+  code: string | null;                       // 整番
   description: string | null;
   clientName: string | null;
-  contractorName: string | null;
+  contractorName: string | null;             // 施工者
   location: string | null;
   startDate: Date | null;
   endDate: Date | null;
   status: ProjectStatus;
+  // 新規フィールド
+  salesPerson: string | null;                // 営業担当者 (担当者LU)
+  constructionName: string | null;           // 工事名 (◆工事項目)
+  steelFabricationCategory: string | null;   // 鉄骨製作区分
+  membraneFabricationCategory: string | null; // 膜製作区分
+  constructionPhoto: string | null;          // 工程写真 (◆工程写真)
   createdAt: Date;
   updatedAt: Date;
   _count?: {
@@ -44,30 +50,42 @@ export interface ProjectWithCounts extends Project {
  * Project creation input
  */
 export interface CreateProjectInput {
-  name: string;
-  code?: string;
+  name: string;                         // 案件名
+  code?: string;                        // 整番
   description?: string;
   clientName?: string;
-  contractorName?: string;
+  contractorName?: string;              // 施工者
   location?: string;
   startDate?: string;
   endDate?: string;
   status?: ProjectStatus;
+  // 新規フィールド
+  salesPerson?: string;                 // 営業担当者
+  constructionName?: string;            // 工事名
+  steelFabricationCategory?: string;    // 鉄骨製作区分
+  membraneFabricationCategory?: string; // 膜製作区分
+  constructionPhoto?: string;           // 工程写真
 }
 
 /**
  * Project update input
  */
 export interface UpdateProjectInput {
-  name?: string;
-  code?: string;
+  name?: string;                         // 案件名
+  code?: string;                         // 整番
   description?: string;
   clientName?: string;
-  contractorName?: string;
+  contractorName?: string;               // 施工者
   location?: string;
   startDate?: string;
   endDate?: string;
   status?: ProjectStatus;
+  // 新規フィールド
+  salesPerson?: string;                  // 営業担当者
+  constructionName?: string;             // 工事名
+  steelFabricationCategory?: string;     // 鉄骨製作区分
+  membraneFabricationCategory?: string;  // 膜製作区分
+  constructionPhoto?: string;            // 工程写真
 }
 
 /**
