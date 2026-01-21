@@ -1,16 +1,46 @@
 /**
  * Lark Baseレコード検索API
+ * 整番、品名、品名2 で検索可能
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import {
   isLarkConfigured,
-  searchRecords,
-  buildSearchFilter,
+  listRecords,
   mapRecordToProject,
   getDefaultMapping,
+  getSearchFields,
 } from '@/lib/lark/client';
-import type { LarkApiResponse, LarkProjectData } from '@/lib/lark/types';
+import type { LarkApiResponse, LarkProjectData, LarkRecord } from '@/lib/lark/types';
+
+/**
+ * レコードをテキスト検索でフィルタリング
+ */
+function filterRecords(
+  records: LarkRecord[],
+  searchText: string,
+  searchFields: string[]
+): LarkRecord[] {
+  if (!searchText.trim()) return records;
+
+  const lowerSearch = searchText.toLowerCase();
+
+  return records.filter((record) => {
+    for (const fieldName of searchFields) {
+      const fieldValue = record.fields[fieldName];
+      if (fieldValue) {
+        // 文字列化して検索
+        const strValue = typeof fieldValue === 'string'
+          ? fieldValue
+          : JSON.stringify(fieldValue);
+        if (strValue.toLowerCase().includes(lowerSearch)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  });
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,32 +61,43 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
-    const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
+    const pageSize = parseInt(searchParams.get('pageSize') || '100', 10);
     const pageToken = searchParams.get('pageToken') || undefined;
 
-    const mapping = getDefaultMapping();
-    const searchFields = [
-      mapping.nameField,
-      mapping.codeField,
-      mapping.clientNameField,
-    ].filter((f): f is string => !!f);
+    // 検索対象フィールド: 整番, 品名, 品名2
+    const searchFields = getSearchFields();
+    console.log('[Lark API] Search fields:', searchFields);
+    console.log('[Lark API] Search text:', search);
 
-    const filter = search ? buildSearchFilter(search, searchFields) : undefined;
-
-    const response = await searchRecords({
-      page_size: pageSize,
+    // レコード取得（多めに取得してクライアント側でフィルタリング）
+    const response = await listRecords({
+      page_size: search ? 500 : pageSize, // 検索時は多めに取得
       page_token: pageToken,
-      filter,
     });
 
+    console.log('[Lark API] Fetched records:', response.data.items.length);
+
+    // 検索テキストでフィルタリング
+    let filteredItems = response.data.items;
+    if (search) {
+      filteredItems = filterRecords(response.data.items, search, searchFields);
+      console.log('[Lark API] Filtered records:', filteredItems.length);
+    }
+
+    // プロジェクトデータに変換
+    const mapping = getDefaultMapping();
     const records: LarkProjectData[] = [];
-    for (const item of response.data.items) {
+
+    for (const item of filteredItems) {
       try {
         records.push(mapRecordToProject(item, mapping));
       } catch (e) {
-        console.warn('Failed to map record:', item.record_id, e);
+        console.warn('[Lark API] Failed to map record:', item.record_id, e);
       }
     }
+
+    // ページサイズで制限
+    const limitedRecords = records.slice(0, pageSize);
 
     const result: LarkApiResponse<{
       records: LarkProjectData[];
@@ -66,16 +107,16 @@ export async function GET(request: NextRequest) {
     }> = {
       success: true,
       data: {
-        records,
-        hasMore: response.data.has_more,
+        records: limitedRecords,
+        hasMore: records.length > pageSize || response.data.has_more,
         pageToken: response.data.page_token,
-        total: response.data.total,
+        total: records.length,
       },
     };
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Lark records search error:', error);
+    console.error('[Lark API] Error:', error);
     return NextResponse.json(
       {
         success: false,

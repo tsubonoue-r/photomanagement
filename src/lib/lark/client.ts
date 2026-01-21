@@ -72,45 +72,60 @@ export async function getTenantAccessToken(): Promise<string> {
 }
 
 /**
- * Lark Baseテーブルからレコードを検索
+ * Lark Baseテーブルからレコードを一覧取得
  */
-export async function searchRecords(
+export async function listRecords(
   request: LarkSearchRequest = {}
 ): Promise<LarkRecordsResponse> {
   const token = await getTenantAccessToken();
   const appToken = process.env.LARK_APP_TOKEN;
   const tableId = process.env.LARK_TABLE_ID;
 
-  const response = await fetch(
-    `${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records/search`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        page_size: request.page_size || 20,
-        page_token: request.page_token,
-        filter: request.filter,
-        sort: request.sort,
-        field_names: request.field_names,
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Lark API failed: ${response.status}`);
+  // クエリパラメータを構築
+  const params = new URLSearchParams();
+  params.set('page_size', String(request.page_size || 20));
+  if (request.page_token) {
+    params.set('page_token', request.page_token);
   }
 
-  const data: LarkRecordsResponse = await response.json();
+  const url = `${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records?${params}`;
 
-  if (data.code !== 0) {
-    throw new Error(`Lark API error: ${data.msg}`);
+  console.log('[Lark API] Fetching records from:', url);
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json();
+
+  console.log('[Lark API] Response code:', data.code, 'msg:', data.msg);
+
+  if (!response.ok || data.code !== 0) {
+    const errorMsg = data.msg || `HTTP ${response.status}`;
+    console.error('[Lark API] Error:', errorMsg);
+    throw new Error(`Lark API error: ${errorMsg}`);
   }
 
-  return data;
+  // レスポンス形式を統一
+  return {
+    code: data.code,
+    msg: data.msg,
+    data: {
+      has_more: data.data?.has_more || false,
+      page_token: data.data?.page_token,
+      total: data.data?.total || 0,
+      items: data.data?.items || [],
+    },
+  };
 }
+
+/**
+ * searchRecords は listRecords のエイリアス（互換性のため）
+ */
+export const searchRecords = listRecords;
 
 /**
  * テキスト検索用のフィルター条件を構築
@@ -131,35 +146,56 @@ export function buildSearchFilter(
 
 /**
  * フィールド値を抽出するヘルパー
+ * Lark Baseの様々なフィールド形式に対応
  */
 function extractFieldValue(
-  field: LarkRecordField | undefined
+  field: unknown
 ): string | null {
-  if (!field) return null;
+  if (field === null || field === undefined) return null;
 
-  // テキスト型
-  if (field.text !== undefined) {
-    if (typeof field.text === 'string') {
-      return field.text;
+  // 文字列の場合
+  if (typeof field === 'string') {
+    return field;
+  }
+
+  // 数値の場合
+  if (typeof field === 'number') {
+    return String(field);
+  }
+
+  // 配列の場合（テキスト配列や複数選択）
+  if (Array.isArray(field)) {
+    // テキスト配列 [{text: "..."}, ...]
+    if (field.length > 0 && typeof field[0] === 'object' && field[0]?.text) {
+      return field.map((t: { text: string }) => t.text).join('');
     }
-    if (Array.isArray(field.text)) {
-      return field.text.map((t) => t.text).join('');
+    // 単純な配列
+    return field.map(String).join(', ');
+  }
+
+  // オブジェクトの場合
+  if (typeof field === 'object') {
+    const obj = field as Record<string, unknown>;
+
+    // テキスト型 {text: "..."}
+    if ('text' in obj && typeof obj.text === 'string') {
+      return obj.text;
     }
-  }
 
-  // 数値型
-  if (field.number !== undefined) {
-    return String(field.number);
-  }
+    // 日付型 {date: timestamp} または timestamp直接
+    if ('date' in obj && typeof obj.date === 'number') {
+      return new Date(obj.date).toISOString().split('T')[0];
+    }
 
-  // 日付型（Unix timestamp to ISO string）
-  if (field.date !== undefined) {
-    return new Date(field.date).toISOString().split('T')[0];
-  }
+    // 選択型
+    if ('value' in obj && typeof obj.value === 'string') {
+      return obj.value;
+    }
 
-  // 選択型
-  if (field.select !== undefined) {
-    return field.select;
+    // リンク型
+    if ('link' in obj && typeof obj.link === 'string') {
+      return obj.link;
+    }
   }
 
   return null;
@@ -170,15 +206,53 @@ function extractFieldValue(
  */
 export function getDefaultMapping(): LarkProjectMapping {
   return {
-    nameField: process.env.LARK_FIELD_NAME || '案件名',
-    codeField: process.env.LARK_FIELD_CODE || '案件コード',
+    nameField: process.env.LARK_FIELD_NAME || '品名',
+    codeField: process.env.LARK_FIELD_CODE || '整番',
     clientNameField: process.env.LARK_FIELD_CLIENT || '発注者',
     contractorNameField: process.env.LARK_FIELD_CONTRACTOR || '施工者',
     locationField: process.env.LARK_FIELD_LOCATION || '工事場所',
     startDateField: process.env.LARK_FIELD_START_DATE || '着工日',
     endDateField: process.env.LARK_FIELD_END_DATE || '完工日',
-    descriptionField: process.env.LARK_FIELD_DESCRIPTION || '備考',
+    descriptionField: process.env.LARK_FIELD_DESCRIPTION || '品名2',
   };
+}
+
+/**
+ * 検索対象フィールド名を取得
+ */
+export function getSearchFields(): string[] {
+  return [
+    process.env.LARK_FIELD_CODE || '整番',
+    process.env.LARK_FIELD_NAME || '品名',
+    process.env.LARK_FIELD_DESCRIPTION || '品名2',
+  ];
+}
+
+/**
+ * Lark Baseレコードから最初に見つかった有効な値を名前として使用
+ */
+function findNameFromRecord(fields: Record<string, unknown>, mapping: LarkProjectMapping): string {
+  // まずマッピングで指定されたフィールドを試す
+  const mappedName = extractFieldValue(fields[mapping.nameField]);
+  if (mappedName) return mappedName;
+
+  // 一般的な名前フィールドを試す
+  const commonNameFields = ['案件名', '名前', '名称', 'name', 'Name', 'title', 'Title', '件名'];
+  for (const fieldName of commonNameFields) {
+    const value = extractFieldValue(fields[fieldName]);
+    if (value) return value;
+  }
+
+  // 最初のテキストフィールドを使用
+  for (const [key, value] of Object.entries(fields)) {
+    const extracted = extractFieldValue(value);
+    if (extracted && extracted.length > 0) {
+      console.log(`[Lark] Using field "${key}" as name: ${extracted}`);
+      return extracted;
+    }
+  }
+
+  return `レコード ${Date.now()}`;
 }
 
 /**
@@ -190,35 +264,19 @@ export function mapRecordToProject(
 ): LarkProjectData {
   const fields = record.fields;
 
-  const name = extractFieldValue(fields[mapping.nameField] as LarkRecordField);
+  console.log('[Lark] Record fields:', Object.keys(fields));
 
-  if (!name) {
-    throw new Error(`Record ${record.record_id} has no name field`);
-  }
+  const name = findNameFromRecord(fields, mapping);
 
   return {
     recordId: record.record_id,
     name,
-    code: mapping.codeField
-      ? extractFieldValue(fields[mapping.codeField] as LarkRecordField) || undefined
-      : undefined,
-    clientName: mapping.clientNameField
-      ? extractFieldValue(fields[mapping.clientNameField] as LarkRecordField) || undefined
-      : undefined,
-    contractorName: mapping.contractorNameField
-      ? extractFieldValue(fields[mapping.contractorNameField] as LarkRecordField) || undefined
-      : undefined,
-    location: mapping.locationField
-      ? extractFieldValue(fields[mapping.locationField] as LarkRecordField) || undefined
-      : undefined,
-    startDate: mapping.startDateField
-      ? extractFieldValue(fields[mapping.startDateField] as LarkRecordField) || undefined
-      : undefined,
-    endDate: mapping.endDateField
-      ? extractFieldValue(fields[mapping.endDateField] as LarkRecordField) || undefined
-      : undefined,
-    description: mapping.descriptionField
-      ? extractFieldValue(fields[mapping.descriptionField] as LarkRecordField) || undefined
-      : undefined,
+    code: extractFieldValue(fields[mapping.codeField || '']) || undefined,
+    clientName: extractFieldValue(fields[mapping.clientNameField || '']) || undefined,
+    contractorName: extractFieldValue(fields[mapping.contractorNameField || '']) || undefined,
+    location: extractFieldValue(fields[mapping.locationField || '']) || undefined,
+    startDate: extractFieldValue(fields[mapping.startDateField || '']) || undefined,
+    endDate: extractFieldValue(fields[mapping.endDateField || '']) || undefined,
+    description: extractFieldValue(fields[mapping.descriptionField || '']) || undefined,
   };
 }
