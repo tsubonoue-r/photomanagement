@@ -128,6 +128,73 @@ export async function listRecords(
 export const searchRecords = listRecords;
 
 /**
+ * 「◆工程写真」が「有」のレコードのみを取得
+ * 全ページを取得して返す
+ */
+export async function listRecordsWithConstructionPhoto(): Promise<LarkRecord[]> {
+  const allRecords: LarkRecord[] = [];
+  let pageToken: string | undefined;
+  let hasMore = true;
+
+  const mapping = getDefaultMapping();
+  const constructionPhotoField = mapping.constructionPhotoField || '◆工程写真';
+
+  console.log('[Lark API] Fetching records with construction photo...');
+
+  while (hasMore) {
+    const response = await listRecords({
+      page_size: 500, // 最大ページサイズで取得
+      page_token: pageToken,
+    });
+
+    // 「◆工程写真」が「有」のレコードのみをフィルタリング
+    const filteredRecords = response.data.items.filter((record) => {
+      const fieldValue = record.fields[constructionPhotoField];
+      if (!fieldValue) return false;
+
+      // 値を文字列化して「有」かどうかをチェック
+      let strValue: string;
+      if (typeof fieldValue === 'string') {
+        strValue = fieldValue;
+      } else if (Array.isArray(fieldValue)) {
+        // テキスト配列の場合
+        strValue = fieldValue.map((v) => {
+          if (typeof v === 'object' && v !== null && 'text' in v) {
+            return (v as { text: string }).text;
+          }
+          return String(v);
+        }).join('');
+      } else if (typeof fieldValue === 'object' && fieldValue !== null) {
+        const obj = fieldValue as Record<string, unknown>;
+        if ('text' in obj && typeof obj.text === 'string') {
+          strValue = obj.text;
+        } else if ('value' in obj && typeof obj.value === 'string') {
+          strValue = obj.value;
+        } else {
+          strValue = JSON.stringify(fieldValue);
+        }
+      } else {
+        strValue = String(fieldValue);
+      }
+
+      return strValue === '有';
+    });
+
+    allRecords.push(...filteredRecords);
+
+    hasMore = response.data.has_more;
+    pageToken = response.data.page_token;
+
+    console.log(
+      `[Lark API] Fetched page: ${response.data.items.length} records, filtered: ${filteredRecords.length}, total: ${allRecords.length}`
+    );
+  }
+
+  console.log(`[Lark API] Total records with construction photo: ${allRecords.length}`);
+  return allRecords;
+}
+
+/**
  * テキスト検索用のフィルター条件を構築
  */
 export function buildSearchFilter(

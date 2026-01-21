@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Filter, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, Loader2, Database } from 'lucide-react';
 import { ProjectCard } from './ProjectCard';
 import { ProjectForm } from './ProjectForm';
 import { DeleteProjectDialog } from './DeleteProjectDialog';
+import { LarkBulkImportDialog } from './LarkBulkImportDialog';
 import type { ProjectWithCounts, ProjectApiResponse, ProjectListResponse } from '@/types/project';
 import type { ProjectStatus } from '@prisma/client';
 
@@ -37,6 +38,7 @@ export function ProjectList({ initialProjects = [], compact = false }: ProjectLi
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingProject, setEditingProject] = useState<ProjectWithCounts | null>(null);
   const [deletingProject, setDeletingProject] = useState<ProjectWithCounts | null>(null);
+  const [showBulkImport, setShowBulkImport] = useState(false);
 
   // Debounce search query
   useEffect(() => {
@@ -151,13 +153,22 @@ export function ProjectList({ initialProjects = [], compact = false }: ProjectLi
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">プロジェクト</h2>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          新規プロジェクト
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowBulkImport(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Database className="w-4 h-4" />
+            Lark一括インポート
+          </button>
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            新規プロジェクト
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -276,6 +287,13 @@ export function ProjectList({ initialProjects = [], compact = false }: ProjectLi
           onCancel={() => setDeletingProject(null)}
         />
       )}
+
+      {/* Lark Bulk Import Dialog */}
+      <LarkBulkImportDialog
+        isOpen={showBulkImport}
+        onClose={() => setShowBulkImport(false)}
+        onImportComplete={fetchProjects}
+      />
     </div>
   );
 }
