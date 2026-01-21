@@ -1,22 +1,26 @@
 import type { BlackboardTemplate } from '@/types/blackboard'
 
+/**
+ * 画像参照スタイルの標準黒板テンプレート
+ * テーブル形式: 左列ラベル、右列値、白罫線
+ * 画像と完全一致するレイアウト
+ */
 export const standardTemplate: BlackboardTemplate = {
   id: 'standard-construction',
   name: '標準工事黒板',
-  description: '一般的な工事現場で使用する標準的な黒板レイアウト',
-  width: 600, height: 400,
-  backgroundColor: '#1a472a', borderColor: '#8b4513', borderWidth: 8,
+  description: '工程写真用の標準的な黒板レイアウト（テーブル形式）',
+  width: 600, height: 450,
+  backgroundColor: '#286658', borderColor: '#ffffff', borderWidth: 2,
   isDefault: true, isActive: true,
+  tableLayout: true,
+  labelColumnWidth: 20,
   createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
   fields: [
-    { id: 'construction-name', name: 'constructionName', label: '工事名', type: 'text', required: true, placeholder: '工事名を入力', x: 5, y: 5, width: 90, height: 12, fontSize: 18, fontColor: '#ffffff', textAlign: 'left' },
-    { id: 'work-type', name: 'workType', label: '工種', type: 'text', required: true, placeholder: '工種を入力', x: 5, y: 20, width: 45, height: 10, fontSize: 16, fontColor: '#ffffff', textAlign: 'left' },
-    { id: 'work-category', name: 'workCategory', label: '種別', type: 'text', required: false, placeholder: '種別を入力', x: 50, y: 20, width: 45, height: 10, fontSize: 16, fontColor: '#ffffff', textAlign: 'left' },
-    { id: 'photo-date', name: 'photoDate', label: '撮影日', type: 'date', required: true, x: 5, y: 33, width: 45, height: 10, fontSize: 16, fontColor: '#ffffff', textAlign: 'left' },
-    { id: 'contractor', name: 'contractor', label: '施工者', type: 'text', required: false, placeholder: '施工者名', x: 50, y: 33, width: 45, height: 10, fontSize: 16, fontColor: '#ffffff', textAlign: 'left' },
-    { id: 'design-value', name: 'designValue', label: '設計値', type: 'text', required: false, placeholder: '設計値', x: 5, y: 46, width: 45, height: 10, fontSize: 16, fontColor: '#ffffff', textAlign: 'left' },
-    { id: 'measured-value', name: 'measuredValue', label: '実測値', type: 'text', required: false, placeholder: '実測値', x: 50, y: 46, width: 45, height: 10, fontSize: 16, fontColor: '#ffffff', textAlign: 'left' },
-    { id: 'sketch', name: 'sketch', label: '略図', type: 'sketch', required: false, x: 5, y: 59, width: 90, height: 38, fontColor: '#ffffff' }
+    { id: 'construction-name', name: 'constructionName', label: '工 事 名', type: 'text', required: true, placeholder: '工事名を入力', x: 0, y: 0, width: 100, height: 11, fontSize: 22, fontColor: '#ffffff', textAlign: 'left' },
+    { id: 'work-type', name: 'workType', label: '工　　種', type: 'text', required: true, placeholder: '工種を入力', x: 0, y: 11, width: 100, height: 9, fontSize: 22, fontColor: '#ffffff', textAlign: 'left' },
+    { id: 'photo-location', name: 'photoLocation', label: '撮影部位', type: 'text', required: false, placeholder: '撮影部位を入力', x: 0, y: 20, width: 100, height: 9, fontSize: 22, fontColor: '#ffffff', textAlign: 'left' },
+    { id: 'photo-content', name: 'photoContent', label: '撮影内容', type: 'text', required: false, placeholder: '撮影内容を入力', x: 0, y: 29, width: 100, height: 60, fontSize: 22, fontColor: '#ffffff', textAlign: 'left' },
+    { id: 'contractor', name: 'contractor', label: '受 注 者', type: 'text', required: false, placeholder: '受注者名', x: 0, y: 89, width: 100, height: 11, fontSize: 22, fontColor: '#ffffff', textAlign: 'left' }
   ]
 }
 

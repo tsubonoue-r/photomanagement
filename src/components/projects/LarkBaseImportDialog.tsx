@@ -7,8 +7,6 @@ import {
   Loader2,
   AlertCircle,
   Database,
-  Calendar,
-  MapPin,
   ChevronDown,
   Check,
 } from 'lucide-react';
@@ -184,18 +182,6 @@ export function LarkBaseImportDialog({
     }
   }, [isOpen]);
 
-  /**
-   * Format date for display
-   */
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -234,7 +220,7 @@ export function LarkBaseImportDialog({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="プロジェクト名、コード、場所で検索..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow text-gray-900"
               autoFocus
             />
             {searchQuery && (
@@ -306,33 +292,26 @@ export function LarkBaseImportDialog({
                             </span>
                           )}
                         </div>
-                        {project.description && (
+                        {project.constructionName && (
                           <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                            {project.description}
+                            工事名: {project.constructionName}
                           </p>
                         )}
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-gray-500">
-                          {project.location && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {project.location}
-                            </span>
+                          {project.salesPerson && (
+                            <span>営業担当: {project.salesPerson}</span>
                           )}
-                          {(project.startDate || project.endDate) && (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {formatDate(project.startDate)} ~{' '}
-                              {formatDate(project.endDate)}
-                            </span>
+                          {project.contractorName && (
+                            <span>施工者: {project.contractorName}</span>
                           )}
                         </div>
-                        {(project.clientName || project.contractorName) && (
+                        {(project.steelFabricationCategory || project.membraneFabricationCategory) && (
                           <div className="flex flex-wrap gap-x-3 mt-2 text-xs text-gray-500">
-                            {project.clientName && (
-                              <span>発注者: {project.clientName}</span>
+                            {project.steelFabricationCategory && (
+                              <span>鉄骨: {project.steelFabricationCategory}</span>
                             )}
-                            {project.contractorName && (
-                              <span>施工者: {project.contractorName}</span>
+                            {project.membraneFabricationCategory && (
+                              <span>膜: {project.membraneFabricationCategory}</span>
                             )}
                           </div>
                         )}

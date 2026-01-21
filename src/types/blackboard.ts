@@ -35,6 +35,8 @@ export interface BlackboardTemplate {
   thumbnailUrl?: string
   isDefault: boolean
   isActive: boolean
+  tableLayout?: boolean
+  labelColumnWidth?: number
   createdAt: string
   updatedAt: string
 }

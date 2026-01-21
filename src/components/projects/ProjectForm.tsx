@@ -212,7 +212,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="整番を入力"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   />
                 </div>
 
@@ -225,7 +225,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                     id="status"
                     value={status}
                     onChange={(e) => setStatus(e.target.value as ProjectStatus)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   >
                     {statusOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -247,7 +247,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="案件名を入力"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     required
                     autoFocus
                   />
@@ -265,7 +265,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                     value={salesPerson}
                     onChange={(e) => setSalesPerson(e.target.value)}
                     placeholder="営業担当者を入力"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   />
                 </div>
 
@@ -280,7 +280,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                     value={contractorName}
                     onChange={(e) => setContractorName(e.target.value)}
                     placeholder="施工者を入力"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   />
                 </div>
 
@@ -296,7 +296,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                     value={constructionName}
                     onChange={(e) => setConstructionName(e.target.value)}
                     placeholder="工事名を入力"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   />
                 </div>
               </div>
@@ -320,7 +320,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                     value={steelFabricationCategory}
                     onChange={(e) => setSteelFabricationCategory(e.target.value)}
                     placeholder="鉄骨製作区分を入力"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   />
                 </div>
 
@@ -335,7 +335,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                     value={membraneFabricationCategory}
                     onChange={(e) => setMembraneFabricationCategory(e.target.value)}
                     placeholder="膜製作区分を入力"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   />
                 </div>
               </div>
@@ -358,7 +358,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
                   value={constructionPhoto}
                   onChange={(e) => setConstructionPhoto(e.target.value)}
                   placeholder="工程写真の情報を入力"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 />
               </div>
             </div>

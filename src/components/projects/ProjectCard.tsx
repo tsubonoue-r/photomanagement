@@ -44,15 +44,6 @@ export function ProjectCard({ project, onEdit, onDelete, compact = false }: Proj
     };
   }, [showMenu]);
 
-  const formatDate = (date: Date | null) => {
-    if (!date) return '-';
-    return new Date(date).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   // Compact mode - list style for dashboard
   if (compact) {
     return (
@@ -156,9 +147,13 @@ export function ProjectCard({ project, onEdit, onDelete, compact = false }: Proj
           </div>
         </div>
 
-        {/* Description */}
-        {project.description && (
-          <p className="mt-2 text-sm text-gray-600 line-clamp-2">{project.description}</p>
+        {/* 営業担当者・施工者 */}
+        {(project.salesPerson || project.contractorName) && (
+          <p className="mt-2 text-sm text-gray-600 truncate">
+            {project.salesPerson && <span>営業: {project.salesPerson}</span>}
+            {project.salesPerson && project.contractorName && <span> | </span>}
+            {project.contractorName && <span>施工: {project.contractorName}</span>}
+          </p>
         )}
 
         {/* Status Badge */}
@@ -204,21 +199,21 @@ export function ProjectCard({ project, onEdit, onDelete, compact = false }: Proj
         </div>
       </div>
 
-      {/* Card Footer - Dates */}
+      {/* Card Footer - 工事情報 */}
       <div className="px-4 py-3 bg-gray-50 rounded-b-lg border-t border-gray-100">
-        <div className="flex justify-between text-xs text-gray-500">
-          <div>
-            <span className="font-medium">開始:</span> {formatDate(project.startDate)}
+        {project.constructionName && (
+          <div className="text-xs text-gray-500 truncate mb-1">
+            <span className="font-medium">工事名:</span> {project.constructionName}
           </div>
-          <div>
-            <span className="font-medium">終了:</span> {formatDate(project.endDate)}
-          </div>
-        </div>
-        {(project.clientName || project.contractorName) && (
-          <div className="mt-2 text-xs text-gray-500 truncate">
-            {project.clientName && <span>発注者: {project.clientName}</span>}
-            {project.clientName && project.contractorName && <span> | </span>}
-            {project.contractorName && <span>施工者: {project.contractorName}</span>}
+        )}
+        {(project.steelFabricationCategory || project.membraneFabricationCategory) && (
+          <div className="flex gap-3 text-xs text-gray-500">
+            {project.steelFabricationCategory && (
+              <span>鉄骨: {project.steelFabricationCategory}</span>
+            )}
+            {project.membraneFabricationCategory && (
+              <span>膜: {project.membraneFabricationCategory}</span>
+            )}
           </div>
         )}
       </div>

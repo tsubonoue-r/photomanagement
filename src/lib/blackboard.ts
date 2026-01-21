@@ -110,9 +110,71 @@ export async function compositeBlackboardToPhoto(photoUrl: string, template: Bla
 }
 
 /**
+ * Generate table-style SVG for blackboard (matches image reference style)
+ * 画像と完全一致するテーブル形式黒板
+ */
+function generateTableLayoutSvg(template: BlackboardTemplate, values: BlackboardFieldValue[]): string {
+  const valueMap = new Map(values.map(v => [v.fieldId, v.value]))
+  const outerPadding = 6  // 外側の黒枠とのマージン
+  const borderWidth = template.borderWidth || 2
+  const labelColWidth = ((template.labelColumnWidth || 20) / 100) * (template.width - outerPadding * 2)
+  const contentStartX = outerPadding
+  const contentStartY = outerPadding
+  const contentWidth = template.width - outerPadding * 2
+  const contentHeight = template.height - outerPadding * 2
+
+  let svg = ''
+
+  // 背景（黒枠）
+  svg += `<rect width="${template.width}" height="${template.height}" fill="#1a1a1a" />`
+
+  // 緑の背景
+  svg += `<rect x="${outerPadding}" y="${outerPadding}" width="${contentWidth}" height="${contentHeight}" fill="${template.backgroundColor}" />`
+
+  // 外枠（白線）
+  svg += `<rect x="${contentStartX}" y="${contentStartY}" width="${contentWidth}" height="${contentHeight}" fill="none" stroke="${template.borderColor}" stroke-width="${borderWidth}" />`
+
+  // 縦の区切り線（ラベル列と値列の間）
+  const lineX = contentStartX + labelColWidth
+  svg += `<line x1="${lineX}" y1="${contentStartY}" x2="${lineX}" y2="${contentStartY + contentHeight}" stroke="${template.borderColor}" stroke-width="2" />`
+
+  // 各行を描画
+  let currentY = contentStartY
+  template.fields.forEach((field, index) => {
+    const rowHeight = (field.height / 100) * contentHeight
+
+    // 横の区切り線（最初の行以外）
+    if (index > 0) {
+      svg += `<line x1="${contentStartX}" y1="${currentY}" x2="${contentStartX + contentWidth}" y2="${currentY}" stroke="${template.borderColor}" stroke-width="${borderWidth}" />`
+    }
+
+    // ラベル（セル中央に配置）
+    const labelX = contentStartX + labelColWidth / 2
+    const labelY = currentY + rowHeight / 2
+    svg += `<text x="${labelX}" y="${labelY}" fill="${field.fontColor || '#ffffff'}" font-size="${field.fontSize || 22}" font-family="sans-serif" text-anchor="middle" dominant-baseline="middle">${field.label}</text>`
+
+    // 値（左寄せ、パディング付き）
+    const value = valueMap.get(field.id)
+    const displayValue = value !== undefined && value !== null ? formatFieldValue(value, field.type) : ''
+    const valueX = contentStartX + labelColWidth + 12
+    const valueY = currentY + rowHeight / 2
+    svg += `<text x="${valueX}" y="${valueY}" fill="${field.fontColor || '#ffffff'}" font-size="${field.fontSize || 22}" font-family="sans-serif" text-anchor="start" dominant-baseline="middle">${displayValue}</text>`
+
+    currentY += rowHeight
+  })
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${template.width}" height="${template.height}" viewBox="0 0 ${template.width} ${template.height}">${svg}</svg>`
+}
+
+/**
  * Generate SVG representation of blackboard (works in both client and server)
  */
 export function generateBlackboardSvg(template: BlackboardTemplate, values: BlackboardFieldValue[], sketchData?: SketchData): string {
+  // Use table layout if specified
+  if (template.tableLayout) {
+    return generateTableLayoutSvg(template, values)
+  }
+
   const valueMap = new Map(values.map(v => [v.fieldId, v.value]))
   let fieldsHtml = ''
 

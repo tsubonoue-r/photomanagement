@@ -69,15 +69,6 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
     notFound();
   }
 
-  const formatDate = (date: Date | null) => {
-    if (!date) return '-';
-    return new Date(date).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
   const navigationItems = [
     {
       href: `/projects/${id}/photos`,
@@ -172,8 +163,8 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 {project.code && (
                   <p className="text-sm text-gray-500 font-mono mt-1">{project.code}</p>
                 )}
-                {project.description && (
-                  <p className="text-sm text-gray-600 mt-2 max-w-2xl">{project.description}</p>
+                {project.constructionName && (
+                  <p className="text-sm text-gray-600 mt-2 max-w-2xl">工事名: {project.constructionName}</p>
                 )}
               </div>
             </div>
@@ -196,32 +187,36 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Details Card */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Project Details</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">プロジェクト情報</h2>
             <dl className="space-y-3">
-              <div>
-                <dt className="text-sm text-gray-500">Start Date</dt>
-                <dd className="text-sm font-medium text-gray-900">{formatDate(project.startDate)}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-gray-500">End Date</dt>
-                <dd className="text-sm font-medium text-gray-900">{formatDate(project.endDate)}</dd>
-              </div>
-              {project.clientName && (
+              {project.salesPerson && (
                 <div>
-                  <dt className="text-sm text-gray-500">Client</dt>
-                  <dd className="text-sm font-medium text-gray-900">{project.clientName}</dd>
+                  <dt className="text-sm text-gray-500">営業担当者</dt>
+                  <dd className="text-sm font-medium text-gray-900">{project.salesPerson}</dd>
                 </div>
               )}
               {project.contractorName && (
                 <div>
-                  <dt className="text-sm text-gray-500">Contractor</dt>
+                  <dt className="text-sm text-gray-500">施工者</dt>
                   <dd className="text-sm font-medium text-gray-900">{project.contractorName}</dd>
                 </div>
               )}
-              {project.location && (
+              {project.steelFabricationCategory && (
                 <div>
-                  <dt className="text-sm text-gray-500">Location</dt>
-                  <dd className="text-sm font-medium text-gray-900">{project.location}</dd>
+                  <dt className="text-sm text-gray-500">鉄骨製作区分</dt>
+                  <dd className="text-sm font-medium text-gray-900">{project.steelFabricationCategory}</dd>
+                </div>
+              )}
+              {project.membraneFabricationCategory && (
+                <div>
+                  <dt className="text-sm text-gray-500">膜製作区分</dt>
+                  <dd className="text-sm font-medium text-gray-900">{project.membraneFabricationCategory}</dd>
+                </div>
+              )}
+              {project.constructionPhoto && (
+                <div>
+                  <dt className="text-sm text-gray-500">工程写真</dt>
+                  <dd className="text-sm font-medium text-gray-900">{project.constructionPhoto}</dd>
                 </div>
               )}
             </dl>

@@ -207,10 +207,10 @@ function extractFieldValue(
  */
 export function getDefaultMapping(): LarkProjectMapping {
   return {
-    codeField: '整番',                              // 整番
+    codeField: '製番',                              // 製番（整番）
     nameField: '品名',                              // 案件名 (品名)
     nameField2: '品名2',                            // 案件名 (品名2) - 連結
-    salesPersonField: '担当者LU',                   // 営業担当者
+    salesPersonField: '担当者',                     // 営業担当者
     contractorNameField: '施工者',                  // 施工者
     constructionNameField: '◆工事項目',            // 工事名
     steelFabricationCategoryField: '鉄骨製作区分', // 鉄骨製作区分
@@ -223,7 +223,7 @@ export function getDefaultMapping(): LarkProjectMapping {
  * 検索対象フィールド名を取得
  */
 export function getSearchFields(): string[] {
-  return ['整番', '品名', '品名2'];
+  return ['製番', '品名', '品名2'];
 }
 
 /**
@@ -234,8 +234,6 @@ export function mapRecordToProject(
   mapping: LarkProjectMapping = getDefaultMapping()
 ): LarkProjectData {
   const fields = record.fields;
-
-  console.log('[Lark] Record fields:', Object.keys(fields));
 
   // 案件名 = 品名 + 品名2 を連結
   const name1 = extractFieldValue(fields[mapping.nameField]) || '';
