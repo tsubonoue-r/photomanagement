@@ -27,7 +27,7 @@ export function GoBackButton() {
       "
     >
       <ArrowLeft className="w-5 h-5" />
-      Go back
+      戻る
     </button>
   );
 }

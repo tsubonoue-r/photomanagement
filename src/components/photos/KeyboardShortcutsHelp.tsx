@@ -67,7 +67,7 @@ export const KeyboardShortcutsHelp = memo<KeyboardShortcutsHelpProps>(
         onClick={onClose}
         role="dialog"
         aria-modal="true"
-        aria-label="Keyboard shortcuts"
+        aria-label="キーボードショートカット"
       >
         <div
           className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-zinc-800"
@@ -84,7 +84,7 @@ export const KeyboardShortcutsHelp = memo<KeyboardShortcutsHelpProps>(
             <button
               onClick={onClose}
               className="rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
-              aria-label="Close"
+              aria-label="閉じる"
             >
               <svg
                 className="h-5 w-5"
@@ -178,7 +178,7 @@ export const KeyboardShortcutsButton = memo<KeyboardShortcutsButtonProps>(
           className={`flex items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm
             text-zinc-600 transition-colors hover:bg-zinc-50
             dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700 ${className}`}
-          aria-label="Show keyboard shortcuts"
+          aria-label="キーボードショートカットを表示"
         >
           <Keyboard className="h-4 w-4" />
           <span className="hidden sm:inline">ショートカット</span>

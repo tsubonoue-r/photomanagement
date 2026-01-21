@@ -67,11 +67,11 @@ export function PhotoUploader({
             <div className="text-sm text-gray-600 dark:text-gray-400">
               {isUploading ? (
                 <span>
-                  Uploading... {completedCount}/{progress.length}
+                  アップロード中... {completedCount}/{progress.length}
                 </span>
               ) : (
                 <span>
-                  Completed: {completedCount}, Errors: {errorCount}
+                  完了: {completedCount}, エラー: {errorCount}
                 </span>
               )}
             </div>
@@ -82,7 +82,7 @@ export function PhotoUploader({
                   className="px-3 py-1 text-sm text-red-600 hover:text-red-700
                            dark:text-red-400 dark:hover:text-red-300"
                 >
-                  Cancel All
+                  すべてキャンセル
                 </button>
               )}
               {!isUploading && (completedCount > 0 || errorCount > 0) && (
@@ -91,7 +91,7 @@ export function PhotoUploader({
                   className="px-3 py-1 text-sm text-gray-600 hover:text-gray-700
                            dark:text-gray-400 dark:hover:text-gray-300"
                 >
-                  Clear
+                  クリア
                 </button>
               )}
             </div>
@@ -114,7 +114,7 @@ export function PhotoUploader({
       {showPreview && uploadedPhotos.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Uploaded Photos ({uploadedPhotos.length})
+            アップロード済み ({uploadedPhotos.length})
           </h3>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
             {uploadedPhotos.map((photo) => (
@@ -221,7 +221,7 @@ function ProgressItem({ item, onCancel }: ProgressItemProps) {
           onClick={onCancel}
           className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600
                    dark:hover:text-gray-300 transition-colors"
-          aria-label="Cancel upload"
+          aria-label="アップロードをキャンセル"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

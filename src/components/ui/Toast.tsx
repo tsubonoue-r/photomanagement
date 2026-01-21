@@ -136,7 +136,7 @@ export function Toast({ toast, onClose }: ToastProps) {
                 inline-flex rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2
                 ${styles.icon} hover:opacity-70 focus:ring-current
               `}
-              aria-label="Close notification"
+              aria-label="通知を閉じる"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -163,7 +163,7 @@ export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   return (
     <div
       aria-live="polite"
-      aria-label="Notifications"
+      aria-label="通知"
       className="pointer-events-none fixed inset-0 z-50 flex flex-col items-end justify-start gap-3 p-4 sm:p-6"
     >
       {toasts.map((toast) => (

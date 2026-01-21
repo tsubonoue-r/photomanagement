@@ -47,19 +47,19 @@ export default function Error({ error, reset }: ErrorProps) {
 
         {/* Title */}
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          Something went wrong
+          問題が発生しました
         </h1>
 
         {/* Description */}
         <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-          We encountered an unexpected error while loading this page.
-          Please try again, or return to the home page.
+          ページの読み込み中に予期しないエラーが発生しました。
+          再試行するか、ホームページに戻ってください。
         </p>
 
         {/* Error digest (for error tracking) */}
         {error.digest && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-6 font-mono">
-            Error ID: {error.digest}
+            エラーID: {error.digest}
           </p>
         )}
 
@@ -78,7 +78,7 @@ export default function Error({ error, reset }: ErrorProps) {
             "
           >
             <RefreshCw className="w-5 h-5" />
-            Try again
+            再試行
           </button>
 
           <button
@@ -96,7 +96,7 @@ export default function Error({ error, reset }: ErrorProps) {
             "
           >
             <Home className="w-5 h-5" />
-            Go to home
+            ホームへ戻る
           </button>
         </div>
 
@@ -116,7 +116,7 @@ export default function Error({ error, reset }: ErrorProps) {
               "
               aria-expanded={showDetails}
             >
-              <span>Error details (development only)</span>
+              <span>エラー詳細（開発環境のみ）</span>
               {showDetails ? (
                 <ChevronUp className="w-4 h-4" />
               ) : (
@@ -128,7 +128,7 @@ export default function Error({ error, reset }: ErrorProps) {
               <div className="px-4 pb-4 space-y-3">
                 <div>
                   <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                    Error name:
+                    エラー名:
                   </p>
                   <pre className="text-xs text-red-600 dark:text-red-400">
                     {error.name}
@@ -137,7 +137,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
                 <div>
                   <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                    Error message:
+                    エラーメッセージ:
                   </p>
                   <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
                     {error.message}
@@ -147,7 +147,7 @@ export default function Error({ error, reset }: ErrorProps) {
                 {error.stack && (
                   <div>
                     <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                      Stack trace:
+                      スタックトレース:
                     </p>
                     <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words max-h-48 overflow-auto">
                       {error.stack}

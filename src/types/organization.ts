@@ -144,26 +144,26 @@ export const ORGANIZATION_ROLE_CONFIG: Record<
   { label: string; description: string; color: string; bgColor: string }
 > = {
   OWNER: {
-    label: 'Owner',
-    description: 'Full control of organization',
+    label: 'オーナー',
+    description: '組織の全権限',
     color: 'text-purple-800',
     bgColor: 'bg-purple-100',
   },
   ADMIN: {
-    label: 'Admin',
-    description: 'Can manage members and settings',
+    label: '管理者',
+    description: 'メンバーと設定を管理可能',
     color: 'text-blue-800',
     bgColor: 'bg-blue-100',
   },
   MEMBER: {
-    label: 'Member',
-    description: 'Can create and manage projects',
+    label: 'メンバー',
+    description: 'プロジェクトの作成と管理が可能',
     color: 'text-green-800',
     bgColor: 'bg-green-100',
   },
   VIEWER: {
-    label: 'Viewer',
-    description: 'Read-only access',
+    label: '閲覧者',
+    description: '閲覧のみ可能',
     color: 'text-gray-800',
     bgColor: 'bg-gray-100',
   },
@@ -177,26 +177,26 @@ export const PLAN_TYPE_CONFIG: Record<
   { label: string; description: string; color: string; bgColor: string }
 > = {
   FREE: {
-    label: 'Free',
-    description: 'Basic features for small teams',
+    label: '無料',
+    description: '小規模チーム向けの基本機能',
     color: 'text-gray-800',
     bgColor: 'bg-gray-100',
   },
   STARTER: {
-    label: 'Starter',
-    description: 'For growing teams',
+    label: 'スターター',
+    description: '成長中のチーム向け',
     color: 'text-blue-800',
     bgColor: 'bg-blue-100',
   },
   PROFESSIONAL: {
-    label: 'Professional',
-    description: 'Advanced features for professionals',
+    label: 'プロフェッショナル',
+    description: 'プロ向けの高度な機能',
     color: 'text-purple-800',
     bgColor: 'bg-purple-100',
   },
   ENTERPRISE: {
-    label: 'Enterprise',
-    description: 'Custom solutions for large organizations',
+    label: 'エンタープライズ',
+    description: '大規模組織向けのカスタムソリューション',
     color: 'text-indigo-800',
     bgColor: 'bg-indigo-100',
   },

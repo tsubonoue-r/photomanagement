@@ -31,12 +31,12 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send reset email');
+        throw new Error(data.error || 'リセットメールの送信に失敗しました');
       }
 
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
     } finally {
       setIsLoading(false);
     }
@@ -52,12 +52,12 @@ export default function ForgotPasswordPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">メールを確認してください</h2>
             <p className="text-gray-600 mb-6">
-              If an account exists with {email}, you will receive a password reset link shortly.
+              {email} にアカウントが存在する場合、パスワードリセットリンクが送信されます。
             </p>
             <p className="text-sm text-gray-500 mb-6">
-              Didn&apos;t receive an email? Check your spam folder or try again.
+              メールが届かない場合は、迷惑メールフォルダを確認するか、再度お試しください。
             </p>
             <div className="space-y-3">
               <button
@@ -67,13 +67,13 @@ export default function ForgotPasswordPage() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
-                Try another email
+                別のメールアドレスを試す
               </button>
               <Link
                 href="/login"
                 className="block w-full px-4 py-2 text-center text-gray-600 hover:text-gray-900"
               >
-                Back to login
+                ログインに戻る
               </Link>
             </div>
           </div>
@@ -92,9 +92,9 @@ export default function ForgotPasswordPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Forgot your password?</h2>
+            <h2 className="text-2xl font-bold text-gray-900">パスワードをお忘れですか？</h2>
             <p className="mt-2 text-gray-600">
-              Enter your email address and we&apos;ll send you a link to reset your password.
+              メールアドレスを入力してください。パスワードリセットリンクをお送りします。
             </p>
           </div>
 
@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
+                メールアドレス
               </label>
               <input
                 id="email"
@@ -117,7 +117,7 @@ export default function ForgotPasswordPage() {
                 required
                 disabled={isLoading}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
-                placeholder="you@example.com"
+                placeholder="example@example.com"
               />
             </div>
 
@@ -126,7 +126,7 @@ export default function ForgotPasswordPage() {
               disabled={isLoading}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {isLoading ? 'Sending...' : 'Send reset link'}
+              {isLoading ? '送信中...' : 'リセットリンクを送信'}
             </button>
 
             <div className="text-center">
@@ -134,7 +134,7 @@ export default function ForgotPasswordPage() {
                 href="/login"
                 className="text-sm text-gray-600 hover:text-gray-900"
               >
-                Back to login
+                ログインに戻る
               </Link>
             </div>
           </form>

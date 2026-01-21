@@ -147,7 +147,7 @@ function SortablePhotoItem({
                 : 'bg-gray-100 text-gray-500'
             }`}
           >
-            {photo.blackboardInfo ? 'BB On' : 'BB Off'}
+            {photo.blackboardInfo ? '黒板ON' : '黒板OFF'}
           </button>
         </div>
       </div>
@@ -278,7 +278,7 @@ export function PhotoSelector({
    */
   const handleRemoveSelected = () => {
     if (selectedPhotos.size === 0) return;
-    if (!confirm(`Remove ${selectedPhotos.size} selected photo(s) from album?`)) {
+    if (!confirm(`選択した${selectedPhotos.size}枚の写真をアルバムから削除しますか？`)) {
       return;
     }
     onRemovePhotos(Array.from(selectedPhotos));
@@ -319,7 +319,7 @@ export function PhotoSelector({
    */
   const toggleBlackboard = (photo: AlbumPhoto) => {
     // This would call the API to update photo settings
-    alert(`Toggle blackboard for photo: ${photo.title || photo.id}`);
+    alert(`黒板の切り替え: ${photo.title || photo.id}`);
   };
 
   /**
@@ -361,11 +361,11 @@ export function PhotoSelector({
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="text-gray-600">
-              {album.photos.length} photos in album
+              アルバム内の写真: {album.photos.length}枚
             </span>
             {selectedPhotos.size > 0 && (
               <span className="text-blue-600 font-medium">
-                {selectedPhotos.size} selected
+                {selectedPhotos.size}枚選択中
               </span>
             )}
           </div>
@@ -377,13 +377,13 @@ export function PhotoSelector({
                   onClick={deselectAllPhotos}
                   className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm"
                 >
-                  Deselect All
+                  選択解除
                 </button>
                 <button
                   onClick={handleRemoveSelected}
                   className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm"
                 >
-                  Remove Selected
+                  選択を削除
                 </button>
               </>
             ) : (
@@ -392,7 +392,7 @@ export function PhotoSelector({
                   onClick={selectAllPhotos}
                   className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm"
                 >
-                  Select All
+                  全て選択
                 </button>
               </>
             )}
@@ -413,7 +413,7 @@ export function PhotoSelector({
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Add Photos
+              写真を追加
             </button>
           </div>
         </div>
@@ -424,16 +424,16 @@ export function PhotoSelector({
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
           <div className="text-gray-400 text-6xl mb-4">IMG</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No photos yet
+            写真がありません
           </h3>
           <p className="text-gray-600 mb-6">
-            Add photos to this album to get started
+            アルバムに写真を追加してください
           </p>
           <button
             onClick={() => setShowAddDialog(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Add Photos
+            写真を追加
           </button>
         </div>
       ) : (
@@ -472,7 +472,7 @@ export function PhotoSelector({
       {/* Drag Hint */}
       {sortedPhotos.length > 1 && (
         <p className="text-center text-sm text-gray-500">
-          Drag photos to reorder them in the album
+          ドラッグして写真の順序を変更できます
         </p>
       )}
 
@@ -483,7 +483,7 @@ export function PhotoSelector({
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-900">
-                  Add Photos to Album
+                  アルバムに写真を追加
                 </h2>
                 <button
                   onClick={() => {
@@ -509,7 +509,7 @@ export function PhotoSelector({
               </div>
               {selectedToAdd.size > 0 && (
                 <p className="text-sm text-blue-600 mt-2">
-                  {selectedToAdd.size} photo(s) selected
+                  {selectedToAdd.size}枚選択中
                 </p>
               )}
             </div>
@@ -518,16 +518,16 @@ export function PhotoSelector({
               {loadingAvailable ? (
                 <div className="text-center py-12">
                   <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading photos...</p>
+                  <p className="text-gray-600">写真を読み込み中...</p>
                 </div>
               ) : availablePhotos.length === 0 ? (
                 <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
                   <div className="text-gray-400 text-5xl mb-4">IMG</div>
                   <p className="text-gray-600 mb-2">
-                    No more photos available to add
+                    追加可能な写真がありません
                   </p>
                   <p className="text-sm text-gray-500">
-                    All project photos are already in this album
+                    プロジェクトの全ての写真が既にこのアルバムに含まれています
                   </p>
                 </div>
               ) : (
@@ -592,15 +592,14 @@ export function PhotoSelector({
                   }}
                   className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  Cancel
+                  キャンセル
                 </button>
                 <button
                   onClick={handleAddSelectedPhotos}
                   disabled={selectedToAdd.size === 0}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add {selectedToAdd.size > 0 ? `${selectedToAdd.size} ` : ''}
-                  Photo{selectedToAdd.size !== 1 ? 's' : ''}
+                  {selectedToAdd.size > 0 ? `${selectedToAdd.size}枚の` : ''}写真を追加
                 </button>
               </div>
             </div>

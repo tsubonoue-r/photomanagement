@@ -37,7 +37,7 @@ interface RetryButtonProps {
  */
 export function RetryButton({
   onRetry,
-  label = 'Retry',
+  label = '再試行',
   showLoadingState = true,
   retryCount = 0,
   maxRetries = 3,
@@ -148,7 +148,7 @@ export function RetryButton({
       )}
 
       {/* Label */}
-      <span>{isLoading ? 'Retrying...' : label}</span>
+      <span>{isLoading ? '再試行中...' : label}</span>
 
       {/* Retry Count Badge */}
       {showRetryCount && retryCount > 0 && !isLoading && (
@@ -255,7 +255,7 @@ export function RetryAllButton({
         ${sizeStyles[size]}
         ${className}
       `}
-      aria-label={`Retry all ${failedCount} failed uploads`}
+      aria-label={`失敗した${failedCount}件を全て再試行`}
       aria-busy={isLoading}
     >
       {/* Loading Spinner or Icon */}
@@ -299,7 +299,7 @@ export function RetryAllButton({
 
       {/* Label */}
       <span>
-        {isLoading ? 'Retrying...' : `Retry Failed (${failedCount})`}
+        {isLoading ? '再試行中...' : `失敗を再試行 (${failedCount})`}
       </span>
     </button>
   );

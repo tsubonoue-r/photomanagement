@@ -43,14 +43,14 @@ export function PhotoDropzone({
         // Check file type
         const mimeType = file.type.toLowerCase();
         if (!ALLOWED_MIME_TYPES.includes(mimeType as typeof ALLOWED_MIME_TYPES[number])) {
-          errors.push(`"${file.name}" is not a supported image type`);
+          errors.push(`"${file.name}" は対応していない画像形式です`);
           continue;
         }
 
         // Check file size
         if (file.size > MAX_FILE_SIZE) {
           errors.push(
-            `"${file.name}" exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`
+            `"${file.name}" は${MAX_FILE_SIZE / 1024 / 1024}MBを超えています`
           );
           continue;
         }
@@ -60,7 +60,7 @@ export function PhotoDropzone({
 
       // Check max files
       if (validFiles.length > maxFiles) {
-        errors.push(`Maximum ${maxFiles} files allowed`);
+        errors.push(`最大${maxFiles}ファイルまで選択可能です`);
         validFiles.splice(maxFiles);
       }
 
@@ -184,7 +184,7 @@ export function PhotoDropzone({
           openFileDialog();
         }
       }}
-      aria-label="Drop photos here or click to select"
+      aria-label="写真をドロップまたはクリックして選択"
     >
       <input
         ref={fileInputRef}
@@ -217,21 +217,21 @@ export function PhotoDropzone({
 
           {isDragging ? (
             <p className="text-lg font-medium text-blue-500">
-              Drop your photos here
+              写真をここにドロップ
             </p>
           ) : (
             <>
               <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                Drag and drop photos here
+                写真をドラッグ＆ドロップ
               </p>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                or click to select files
+                またはクリックしてファイルを選択
               </p>
             </>
           )}
 
           <p className="mt-4 text-xs text-gray-400 dark:text-gray-500">
-            JPEG, PNG, HEIC up to {MAX_FILE_SIZE / 1024 / 1024}MB
+            JPEG, PNG, HEIC 最大{MAX_FILE_SIZE / 1024 / 1024}MB
           </p>
         </div>
       )}

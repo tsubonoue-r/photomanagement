@@ -35,14 +35,14 @@ export default function AlbumsPage() {
       const response = await fetch(`/api/albums?projectId=${projectId}`);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch albums');
+        throw new Error('アルバムの取得に失敗しました');
       }
 
       const data: AlbumListResponse = await response.json();
       setAlbums(data.albums);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load albums');
+      setError(err instanceof Error ? err.message : 'アルバムの読み込みに失敗しました');
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export default function AlbumsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create album');
+        throw new Error('アルバムの作成に失敗しました');
       }
 
       const album: Album = await response.json();
@@ -83,7 +83,7 @@ export default function AlbumsPage() {
       // Navigate to the new album
       router.push(`/projects/${projectId}/albums/${album.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create album');
+      setError(err instanceof Error ? err.message : 'アルバムの作成に失敗しました');
     } finally {
       setCreating(false);
     }
@@ -93,7 +93,7 @@ export default function AlbumsPage() {
    * Delete album
    */
   const handleDeleteAlbum = async (albumId: string) => {
-    if (!confirm('Are you sure you want to delete this album?')) return;
+    if (!confirm('このアルバムを削除してもよろしいですか？')) return;
 
     try {
       const response = await fetch(`/api/albums/${albumId}`, {
@@ -101,12 +101,12 @@ export default function AlbumsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete album');
+        throw new Error('アルバムの削除に失敗しました');
       }
 
       setAlbums((prev) => prev.filter((a) => a.id !== albumId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete album');
+      setError(err instanceof Error ? err.message : 'アルバムの削除に失敗しました');
     }
   };
 
@@ -141,7 +141,7 @@ export default function AlbumsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-gray-600">Loading albums...</div>
+        <div className="text-lg text-gray-600">アルバムを読み込み中...</div>
       </div>
     );
   }
@@ -152,9 +152,9 @@ export default function AlbumsPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Albums</h1>
+            <h1 className="text-2xl font-bold text-gray-900">アルバム</h1>
             <p className="text-gray-600 mt-1">
-              Manage photo albums for this project
+              このプロジェクトのフォトアルバムを管理
             </p>
           </div>
           <button
@@ -174,7 +174,7 @@ export default function AlbumsPage() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Create Album
+            アルバムを作成
           </button>
         </div>
 
@@ -190,16 +190,16 @@ export default function AlbumsPage() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <div className="text-gray-400 text-6xl mb-4">📚</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No albums yet
+              アルバムがありません
             </h3>
             <p className="text-gray-600 mb-6">
-              Create your first album to start organizing photos
+              最初のアルバムを作成して写真の整理を始めましょう
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Create Album
+              アルバムを作成
             </button>
           </div>
         ) : (
@@ -239,9 +239,9 @@ export default function AlbumsPage() {
                   )}
 
                   <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <span>{album.photos.length} photos</span>
+                    <span>{album.photos.length}枚の写真</span>
                     <span className="mx-2">-</span>
-                    <span>Updated {formatDate(album.updatedAt)}</span>
+                    <span>更新日: {formatDate(album.updatedAt)}</span>
                   </div>
 
                   {/* Actions */}
@@ -252,13 +252,13 @@ export default function AlbumsPage() {
                       }
                       className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                     >
-                      Open
+                      開く
                     </button>
                     <button
                       onClick={() => handleDeleteAlbum(album.id)}
                       className="px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors text-sm"
                     >
-                      Delete
+                      削除
                     </button>
                   </div>
                 </div>
@@ -273,31 +273,31 @@ export default function AlbumsPage() {
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
               <div className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Create New Album
+                  新規アルバム作成
                 </h2>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Album Title *
+                      アルバムタイトル *
                     </label>
                     <input
                       type="text"
                       value={newAlbumTitle}
                       onChange={(e) => setNewAlbumTitle(e.target.value)}
-                      placeholder="Enter album title"
+                      placeholder="アルバムタイトルを入力"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
+                      説明
                     </label>
                     <textarea
                       value={newAlbumDescription}
                       onChange={(e) => setNewAlbumDescription(e.target.value)}
-                      placeholder="Enter album description (optional)"
+                      placeholder="アルバムの説明を入力（任意）"
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -313,14 +313,14 @@ export default function AlbumsPage() {
                     }}
                     className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    Cancel
+                    キャンセル
                   </button>
                   <button
                     onClick={handleCreateAlbum}
                     disabled={!newAlbumTitle.trim() || creating}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {creating ? 'Creating...' : 'Create Album'}
+                    {creating ? '作成中...' : 'アルバムを作成'}
                   </button>
                 </div>
               </div>

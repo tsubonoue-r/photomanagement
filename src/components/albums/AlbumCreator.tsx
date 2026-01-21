@@ -43,7 +43,7 @@ export function AlbumCreator({
    */
   const handleSubmit = async () => {
     if (!title.trim()) {
-      setError('Title is required');
+      setError('タイトルは必須です');
       return;
     }
 
@@ -67,13 +67,13 @@ export function AlbumCreator({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to create album');
+        throw new Error(data.error || 'アルバムの作成に失敗しました');
       }
 
       const album = await response.json();
       onCreated(album.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create album');
+      setError(err instanceof Error ? err.message : 'アルバムの作成に失敗しました');
     } finally {
       setCreating(false);
     }
@@ -83,12 +83,12 @@ export function AlbumCreator({
    * Background color presets
    */
   const colorPresets = [
-    { name: 'White', value: '#ffffff' },
-    { name: 'Light Gray', value: '#f3f4f6' },
-    { name: 'Blue', value: '#dbeafe' },
-    { name: 'Green', value: '#dcfce7' },
-    { name: 'Yellow', value: '#fef9c3' },
-    { name: 'Pink', value: '#fce7f3' },
+    { name: '白', value: '#ffffff' },
+    { name: 'ライトグレー', value: '#f3f4f6' },
+    { name: '青', value: '#dbeafe' },
+    { name: '緑', value: '#dcfce7' },
+    { name: '黄', value: '#fef9c3' },
+    { name: 'ピンク', value: '#fce7f3' },
   ];
 
   return (
@@ -97,7 +97,7 @@ export function AlbumCreator({
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Create New Album</h2>
+            <h2 className="text-xl font-bold text-gray-900">新規アルバム作成</h2>
             <button
               onClick={onCancel}
               className="text-gray-400 hover:text-gray-600"
@@ -128,7 +128,7 @@ export function AlbumCreator({
                   : 'border-gray-200 text-gray-500'
               }`}
             >
-              1. Basic Info
+              1. 基本情報
             </button>
             <button
               onClick={() => setStep('cover')}
@@ -138,7 +138,7 @@ export function AlbumCreator({
                   : 'border-gray-200 text-gray-500'
               }`}
             >
-              2. Cover Design
+              2. 表紙デザイン
             </button>
           </div>
 
@@ -154,25 +154,25 @@ export function AlbumCreator({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Album Title *
+                  アルバムタイトル *
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter album title"
+                  placeholder="アルバムタイトルを入力"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  説明
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter album description (optional)"
+                  placeholder="アルバムの説明を入力（任意）"
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -180,26 +180,26 @@ export function AlbumCreator({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Project Name
+                  プロジェクト名
                 </label>
                 <input
                   type="text"
                   value={cover.projectName || ''}
                   onChange={(e) => updateCover('projectName', e.target.value)}
-                  placeholder="Enter project name"
+                  placeholder="プロジェクト名を入力"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Company Name
+                  会社名
                 </label>
                 <input
                   type="text"
                   value={cover.companyName || ''}
                   onChange={(e) => updateCover('companyName', e.target.value)}
-                  placeholder="Enter company name"
+                  placeholder="会社名を入力"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -211,20 +211,20 @@ export function AlbumCreator({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cover Subtitle
+                  表紙サブタイトル
                 </label>
                 <input
                   type="text"
                   value={cover.subtitle || ''}
                   onChange={(e) => updateCover('subtitle', e.target.value)}
-                  placeholder="Enter subtitle (optional)"
+                  placeholder="サブタイトルを入力（任意）"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date
+                  日付
                 </label>
                 <input
                   type="date"
@@ -236,7 +236,7 @@ export function AlbumCreator({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Background Color
+                  背景色
                 </label>
                 <div className="flex gap-2 flex-wrap">
                   {colorPresets.map((preset) => (
@@ -257,7 +257,7 @@ export function AlbumCreator({
                     value={cover.backgroundColor || '#ffffff'}
                     onChange={(e) => updateCover('backgroundColor', e.target.value)}
                     className="w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer"
-                    title="Custom color"
+                    title="カスタムカラー"
                   />
                 </div>
               </div>
@@ -265,14 +265,14 @@ export function AlbumCreator({
               {/* Cover Preview */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cover Preview
+                  表紙プレビュー
                 </label>
                 <div
                   className="rounded-lg border border-gray-300 p-8 text-center"
                   style={{ backgroundColor: cover.backgroundColor }}
                 >
                   <h3 className="text-xl font-bold text-gray-900 mb-1">
-                    {title || 'Album Title'}
+                    {title || 'アルバムタイトル'}
                   </h3>
                   {cover.subtitle && (
                     <p className="text-gray-600 mb-4">{cover.subtitle}</p>
@@ -303,7 +303,7 @@ export function AlbumCreator({
                   onClick={() => setStep('basic')}
                   className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  Back
+                  戻る
                 </button>
               )}
             </div>
@@ -312,14 +312,14 @@ export function AlbumCreator({
                 onClick={onCancel}
                 className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Cancel
+                キャンセル
               </button>
               {step === 'basic' ? (
                 <button
                   onClick={() => setStep('cover')}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Next
+                  次へ
                 </button>
               ) : (
                 <button
@@ -327,7 +327,7 @@ export function AlbumCreator({
                   disabled={!title.trim() || creating}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {creating ? 'Creating...' : 'Create Album'}
+                  {creating ? '作成中...' : 'アルバムを作成'}
                 </button>
               )}
             </div>

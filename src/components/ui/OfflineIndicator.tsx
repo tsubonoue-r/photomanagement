@@ -167,7 +167,7 @@ export function OfflineIndicator({
                 transition-colors duration-200
                 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-amber-600
               "
-              aria-label="Retry connection"
+              aria-label="接続を再試行"
             >
               <RefreshCw className="w-4 h-4" />
               <span className="hidden sm:inline">再試行</span>
@@ -184,7 +184,7 @@ export function OfflineIndicator({
               transition-colors duration-200
               focus:outline-none focus:ring-2 focus:ring-white
             "
-            aria-label="Dismiss notification"
+            aria-label="通知を閉じる"
           >
             <X className="w-4 h-4" />
           </button>

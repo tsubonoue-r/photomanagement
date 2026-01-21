@@ -53,7 +53,7 @@ export function OrganizationSettings({
     e.preventDefault();
 
     if (!name.trim()) {
-      setError('Organization name is required');
+      setError('組織名は必須です');
       return;
     }
 
@@ -74,13 +74,13 @@ export function OrganizationSettings({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to save settings');
+        throw new Error(result.error || '設定の保存に失敗しました');
       }
 
-      setSuccess('Settings saved successfully');
+      setSuccess('設定を保存しました');
       onOrganizationUpdated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save settings');
+      setError(err instanceof Error ? err.message : '設定の保存に失敗しました');
     } finally {
       setSaving(false);
     }
@@ -100,13 +100,13 @@ export function OrganizationSettings({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to delete organization');
+        throw new Error(result.error || '組織の削除に失敗しました');
       }
 
       router.push('/organizations');
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to delete organization'
+        err instanceof Error ? err.message : '組織の削除に失敗しました'
       );
       setDeleting(false);
     }
@@ -120,7 +120,7 @@ export function OrganizationSettings({
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-gray-600" />
             <h2 className="text-lg font-semibold text-gray-900">
-              General Settings
+              一般設定
             </h2>
           </div>
         </div>
@@ -144,7 +144,7 @@ export function OrganizationSettings({
               htmlFor="name"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Organization Name
+              組織名
             </label>
             <input
               id="name"
@@ -163,7 +163,7 @@ export function OrganizationSettings({
               htmlFor="slug"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              URL Slug
+              URLスラッグ
             </label>
             <div className="flex items-center max-w-md">
               <span className="text-gray-500 text-sm mr-1">/</span>
@@ -184,7 +184,7 @@ export function OrganizationSettings({
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Only lowercase letters, numbers, and hyphens allowed
+              小文字、数字、ハイフンのみ使用可能
             </p>
           </div>
 
@@ -196,7 +196,7 @@ export function OrganizationSettings({
                 disabled={saving}
               >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save Changes
+                変更を保存
               </button>
             </div>
           )}
@@ -209,7 +209,7 @@ export function OrganizationSettings({
           <div className="flex items-center gap-2">
             <Building2 className="w-5 h-5 text-gray-600" />
             <h2 className="text-lg font-semibold text-gray-900">
-              Plan & Billing
+              プラン・お支払い
             </h2>
           </div>
         </div>
@@ -218,7 +218,7 @@ export function OrganizationSettings({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-medium text-gray-900">
-                Current Plan
+                現在のプラン
               </h3>
               <p className="text-sm text-gray-500 mt-1">
                 {planConfig.description}
@@ -235,11 +235,11 @@ export function OrganizationSettings({
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
-                <span>{organization._count.members} members</span>
+                <span>{organization._count.members}人のメンバー</span>
               </div>
               <div className="flex items-center gap-1">
                 <Building2 className="w-4 h-4" />
-                <span>{organization._count.projects} projects</span>
+                <span>{organization._count.projects}件のプロジェクト</span>
               </div>
             </div>
           </div>
@@ -249,10 +249,10 @@ export function OrganizationSettings({
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
               onClick={() => {
                 // TODO: Implement billing/upgrade flow
-                alert('Billing management coming soon!');
+                alert('お支払い管理機能は近日公開予定です');
               }}
             >
-              Manage Billing
+              お支払い管理
             </button>
           </div>
         </div>
@@ -265,7 +265,7 @@ export function OrganizationSettings({
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600" />
               <h2 className="text-lg font-semibold text-red-900">
-                Danger Zone
+                危険な操作
               </h2>
             </div>
           </div>
@@ -275,11 +275,10 @@ export function OrganizationSettings({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">
-                    Delete this organization
+                    この組織を削除
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
-                    Once deleted, all projects, photos, and data will be
-                    permanently removed.
+                    削除すると、全てのプロジェクト、写真、データが完全に削除されます。
                   </p>
                 </div>
                 <button
@@ -287,29 +286,28 @@ export function OrganizationSettings({
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Delete Organization
+                  組織を削除
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="bg-yellow-50 border border-yellow-200 px-4 py-3 rounded-lg">
                   <p className="text-sm text-yellow-800">
-                    <strong>Warning:</strong> This action cannot be undone. All
-                    data will be permanently deleted.
+                    <strong>警告:</strong> この操作は取り消せません。全てのデータが完全に削除されます。
                   </p>
                 </div>
 
                 <p className="text-sm text-gray-600">
-                  To confirm, type{' '}
+                  確認のため、以下に{' '}
                   <span className="font-semibold">{organization.name}</span>{' '}
-                  below:
+                  と入力してください:
                 </p>
 
                 <input
                   type="text"
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  placeholder="Type organization name"
+                  placeholder="組織名を入力"
                   className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   disabled={deleting}
                 />
@@ -323,7 +321,7 @@ export function OrganizationSettings({
                     className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     disabled={deleting}
                   >
-                    Cancel
+                    キャンセル
                   </button>
                   <button
                     onClick={handleDeleteOrganization}
@@ -333,7 +331,7 @@ export function OrganizationSettings({
                     }
                   >
                     {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Delete Forever
+                    完全に削除
                   </button>
                 </div>
               </div>

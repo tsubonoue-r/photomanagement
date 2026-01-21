@@ -33,7 +33,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   };
 
   return (
-    <html lang="en">
+    <html lang="ja">
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="text-center max-w-lg">
@@ -56,19 +56,19 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
             {/* Title */}
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Critical Error
+              重大なエラー
             </h2>
 
             {/* Description */}
             <p className="text-gray-500 dark:text-gray-400 mb-4 max-w-md mx-auto">
-              A critical error occurred while loading the application.
-              This may be a temporary issue. Please try refreshing the page.
+              アプリケーションの読み込み中に重大なエラーが発生しました。
+              一時的な問題の可能性があります。ページを更新してお試しください。
             </p>
 
             {/* Error digest (for error tracking) */}
             {error.digest && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mb-8 font-mono">
-                Error ID: {error.digest}
+                エラーID: {error.digest}
               </p>
             )}
 
@@ -86,7 +86,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 "
               >
                 <RefreshCw className="w-5 h-5" />
-                Try again
+                再試行
               </button>
 
               <button
@@ -102,7 +102,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
                 "
               >
-                Refresh page
+                ページを更新
               </button>
             </div>
 
@@ -122,7 +122,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   "
                   aria-expanded={showDetails}
                 >
-                  <span>Error details (development only)</span>
+                  <span>エラー詳細（開発環境のみ）</span>
                   {showDetails ? (
                     <ChevronUp className="w-4 h-4" />
                   ) : (
@@ -134,7 +134,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   <div className="px-4 pb-4 space-y-3">
                     <div>
                       <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                        Error name:
+                        エラー名:
                       </p>
                       <pre className="text-xs text-red-600 dark:text-red-400">
                         {error.name}
@@ -143,7 +143,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
                     <div>
                       <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                        Error message:
+                        エラーメッセージ:
                       </p>
                       <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
                         {error.message}
@@ -153,7 +153,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                     {error.stack && (
                       <div>
                         <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                          Stack trace:
+                          スタックトレース:
                         </p>
                         <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words max-h-48 overflow-auto">
                           {error.stack}
@@ -168,7 +168,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             {/* Support information */}
             <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                If this problem persists, please contact support or try again later.
+                この問題が続く場合は、サポートにお問い合わせいただくか、しばらくしてから再度お試しください。
               </p>
             </div>
           </div>

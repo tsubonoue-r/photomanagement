@@ -107,7 +107,7 @@ export default function InviteAcceptPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading invitation...</p>
+          <p className="text-gray-600">招待を読み込み中...</p>
         </div>
       </div>
     );
@@ -121,16 +121,16 @@ export default function InviteAcceptPage() {
             <XCircle className="w-8 h-8 text-red-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Invalid Invitation
+            無効な招待
           </h1>
           <p className="text-gray-600 mb-6">
-            This invitation link is invalid, expired, or has already been used.
+            この招待リンクは無効、期限切れ、または既に使用されています。
           </p>
           <Link
             href="/"
             className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Go to Home
+            ホームへ戻る
           </Link>
         </div>
       </div>
@@ -145,13 +145,13 @@ export default function InviteAcceptPage() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome to {invitation.organization?.name}!
+            {invitation.organization?.name}へようこそ！
           </h1>
           <p className="text-gray-600 mb-6">
-            You have successfully joined the organization as{' '}
-            <span className="font-medium">{invitation.role}</span>.
+            <span className="font-medium">{invitation.role}</span>
+            として組織に参加しました。
           </p>
-          <p className="text-sm text-gray-500">Redirecting to organizations...</p>
+          <p className="text-sm text-gray-500">組織ページへ移動中...</p>
         </div>
       </div>
     );
@@ -171,23 +171,23 @@ export default function InviteAcceptPage() {
             <Building2 className="w-8 h-8 text-blue-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            You&apos;re Invited!
+            招待されています！
           </h1>
           <p className="text-gray-600">
-            You&apos;ve been invited to join an organization
+            組織への参加に招待されています
           </p>
         </div>
 
         <div className="bg-gray-50 rounded-lg p-6 mb-6">
           <div className="space-y-4">
             <div>
-              <p className="text-sm text-gray-500">Organization</p>
+              <p className="text-sm text-gray-500">組織</p>
               <p className="text-lg font-semibold text-gray-900">
                 {invitation.organization?.name}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Your Role</p>
+              <p className="text-sm text-gray-500">役割</p>
               <p className="text-lg font-semibold text-gray-900">
                 {invitation.role}
               </p>
@@ -204,12 +204,12 @@ export default function InviteAcceptPage() {
             {accepting ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Accepting...
+                承認中...
               </>
             ) : (
               <>
                 <CheckCircle className="w-5 h-5" />
-                Accept Invitation
+                招待を承認
               </>
             )}
           </button>
@@ -219,16 +219,16 @@ export default function InviteAcceptPage() {
             className="w-full px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
           >
             <LogIn className="w-5 h-5" />
-            Sign in with different account
+            別のアカウントでログイン
           </Link>
 
           <p className="text-center text-sm text-gray-500 mt-4">
-            Don&apos;t have an account?{' '}
+            アカウントをお持ちでないですか？{' '}
             <Link
               href={`/register?callbackUrl=/invite/${code}`}
               className="text-blue-600 hover:underline"
             >
-              Create one
+              新規登録
             </Link>
           </p>
         </div>

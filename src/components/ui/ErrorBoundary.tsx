@@ -110,10 +110,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                Something went wrong
+                問題が発生しました
               </h2>
               <p className="text-gray-500 dark:text-gray-400">
-                An unexpected error occurred. Please try again or return to the home page.
+                予期しないエラーが発生しました。再試行するか、ホームページに戻ってください。
               </p>
             </div>
 
@@ -132,7 +132,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 "
               >
                 <RefreshCw className="w-4 h-4" />
-                Try again
+                再試行
               </button>
               <button
                 type="button"
@@ -149,7 +149,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 "
               >
                 <Home className="w-4 h-4" />
-                Go to home
+                ホームへ戻る
               </button>
             </div>
 
@@ -169,7 +169,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   "
                   aria-expanded={showStack}
                 >
-                  <span>Error details</span>
+                  <span>エラー詳細</span>
                   {showStack ? (
                     <ChevronUp className="w-4 h-4" />
                   ) : (
@@ -181,7 +181,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   <div className="px-4 pb-4 space-y-3">
                     <div>
                       <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                        Error message:
+                        エラーメッセージ:
                       </p>
                       <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
                         {error.message}
@@ -191,7 +191,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                     {error.stack && (
                       <div>
                         <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                          Stack trace:
+                          スタックトレース:
                         </p>
                         <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words max-h-48 overflow-auto">
                           {error.stack}
@@ -202,7 +202,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                     {errorInfo?.componentStack && (
                       <div>
                         <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
-                          Component stack:
+                          コンポーネントスタック:
                         </p>
                         <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words max-h-48 overflow-auto">
                           {errorInfo.componentStack}

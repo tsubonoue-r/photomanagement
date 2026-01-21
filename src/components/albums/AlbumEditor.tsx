@@ -72,24 +72,24 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
    * Background color presets
    */
   const colorPresets = [
-    { name: 'White', value: '#ffffff' },
-    { name: 'Light Gray', value: '#f3f4f6' },
-    { name: 'Blue', value: '#dbeafe' },
-    { name: 'Green', value: '#dcfce7' },
-    { name: 'Yellow', value: '#fef9c3' },
-    { name: 'Pink', value: '#fce7f3' },
+    { name: '白', value: '#ffffff' },
+    { name: 'ライトグレー', value: '#f3f4f6' },
+    { name: '青', value: '#dbeafe' },
+    { name: '緑', value: '#dcfce7' },
+    { name: '黄', value: '#fef9c3' },
+    { name: 'ピンク', value: '#fce7f3' },
   ];
 
   return (
     <div className="space-y-8">
       {/* Basic Info Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">基本情報</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Album Title
+              アルバムタイトル
             </label>
             <input
               type="text"
@@ -104,7 +104,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
+              ステータス
             </label>
             <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-600">
               {album.status.charAt(0).toUpperCase() + album.status.slice(1)}
@@ -113,7 +113,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
 
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              説明
             </label>
             <textarea
               value={description}
@@ -130,12 +130,12 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
 
       {/* Cover Settings Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Cover Settings</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">表紙設定</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Cover Title
+              表紙タイトル
             </label>
             <input
               type="text"
@@ -147,20 +147,20 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subtitle
+              サブタイトル
             </label>
             <input
               type="text"
               value={cover.subtitle || ''}
               onChange={(e) => updateCover('subtitle', e.target.value)}
-              placeholder="Optional"
+              placeholder="任意"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Project Name
+              プロジェクト名
             </label>
             <input
               type="text"
@@ -172,7 +172,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Company Name
+              会社名
             </label>
             <input
               type="text"
@@ -184,7 +184,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date
+              日付
             </label>
             <input
               type="date"
@@ -196,7 +196,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Background Color
+              背景色
             </label>
             <div className="flex gap-2 flex-wrap">
               {colorPresets.map((preset) => (
@@ -217,7 +217,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
                 value={cover.backgroundColor || '#ffffff'}
                 onChange={(e) => updateCover('backgroundColor', e.target.value)}
                 className="w-8 h-8 rounded border-2 border-gray-300 cursor-pointer"
-                title="Custom color"
+                title="カスタムカラー"
               />
             </div>
           </div>
@@ -226,7 +226,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
         {/* Cover Preview */}
         <div className="mt-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cover Preview
+            表紙プレビュー
           </label>
           <div
             className="rounded-lg border border-gray-300 p-6 text-center max-w-md"
@@ -256,13 +256,13 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
       {/* Export Options Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Default Export Options
+          デフォルトエクスポート設定
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Paper Size
+              用紙サイズ
             </label>
             <select
               value={exportOptions.paperSize}
@@ -278,7 +278,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Photos per Page
+              1ページあたりの写真数
             </label>
             <select
               value={exportOptions.layout}
@@ -287,15 +287,15 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="1">1 photo</option>
-              <option value="2">2 photos</option>
-              <option value="4">4 photos</option>
+              <option value="1">1枚</option>
+              <option value="2">2枚</option>
+              <option value="4">4枚</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Orientation
+              向き
             </label>
             <select
               value={exportOptions.orientation}
@@ -307,14 +307,14 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="portrait">Portrait</option>
-              <option value="landscape">Landscape</option>
+              <option value="portrait">縦向き</option>
+              <option value="landscape">横向き</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Quality
+              品質
             </label>
             <select
               value={exportOptions.quality}
@@ -326,8 +326,8 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="standard">Standard</option>
-              <option value="high">High Quality</option>
+              <option value="standard">標準</option>
+              <option value="high">高画質</option>
             </select>
           </div>
         </div>
@@ -343,7 +343,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
               }
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Include Cover Page</span>
+            <span className="text-sm text-gray-700">表紙を含める</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer">
@@ -355,7 +355,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
               }
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Include Table of Contents</span>
+            <span className="text-sm text-gray-700">目次を含める</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer">
@@ -367,7 +367,7 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
               }
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Include Blackboard Overlay</span>
+            <span className="text-sm text-gray-700">黒板オーバーレイを含める</span>
           </label>
         </div>
       </div>
@@ -379,13 +379,13 @@ export function AlbumEditor({ album, onUpdate }: AlbumEditorProps) {
             onClick={handleReset}
             className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
           >
-            Reset Changes
+            変更を破棄
           </button>
           <button
             onClick={handleSave}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
           >
-            Save Changes
+            変更を保存
           </button>
         </div>
       )}

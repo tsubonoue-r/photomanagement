@@ -64,13 +64,13 @@ export function InviteLinkGenerator({
         await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch invitations');
+        throw new Error(result.error || '招待の取得に失敗しました');
       }
 
       setInvitations(result.data || []);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to fetch invitations'
+        err instanceof Error ? err.message : '招待の取得に失敗しました'
       );
     } finally {
       setLoading(false);
@@ -105,7 +105,7 @@ export function InviteLinkGenerator({
         await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to create invitation');
+        throw new Error(result.error || '招待の作成に失敗しました');
       }
 
       // Add new invitation to list
@@ -119,7 +119,7 @@ export function InviteLinkGenerator({
       setExpiresInDays(7);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to create invitation'
+        err instanceof Error ? err.message : '招待の作成に失敗しました'
       );
     } finally {
       setCreating(false);
@@ -127,7 +127,7 @@ export function InviteLinkGenerator({
   };
 
   const handleRevokeInvitation = async (invitationId: string) => {
-    if (!confirm('Are you sure you want to revoke this invitation?')) return;
+    if (!confirm('この招待を取り消してもよろしいですか？')) return;
 
     try {
       const response = await fetch(
@@ -140,14 +140,14 @@ export function InviteLinkGenerator({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to revoke invitation');
+        throw new Error(result.error || '招待の取り消しに失敗しました');
       }
 
       // Remove from list
       setInvitations(invitations.filter((inv) => inv.id !== invitationId));
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to revoke invitation'
+        err instanceof Error ? err.message : '招待の取り消しに失敗しました'
       );
     }
   };
@@ -165,9 +165,9 @@ export function InviteLinkGenerator({
     const diffMs = d.getTime() - now.getTime();
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays <= 0) return 'Expired';
-    if (diffDays === 1) return 'Expires in 1 day';
-    return `Expires in ${diffDays} days`;
+    if (diffDays <= 0) return '期限切れ';
+    if (diffDays === 1) return '残り1日';
+    return `残り${diffDays}日`;
   };
 
   return (
@@ -180,7 +180,7 @@ export function InviteLinkGenerator({
               <Link2 className="w-5 h-5 text-blue-600" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
-              Invitation Links
+              招待リンク
             </h2>
           </div>
           <button
@@ -201,7 +201,7 @@ export function InviteLinkGenerator({
           {/* Create New Invitation */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-900 mb-4">
-              Create New Invitation Link
+              新しい招待リンクを作成
             </h3>
 
             <form onSubmit={handleCreateInvitation} className="space-y-4">
@@ -212,7 +212,7 @@ export function InviteLinkGenerator({
                     htmlFor="role"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Role
+                    役割
                   </label>
                   <select
                     id="role"
@@ -235,7 +235,7 @@ export function InviteLinkGenerator({
                     htmlFor="expires"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Expires In
+                    有効期限
                   </label>
                   <select
                     id="expires"
@@ -244,11 +244,11 @@ export function InviteLinkGenerator({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     disabled={creating}
                   >
-                    <option value={1}>1 day</option>
-                    <option value={3}>3 days</option>
-                    <option value={7}>7 days</option>
-                    <option value={14}>14 days</option>
-                    <option value={30}>30 days</option>
+                    <option value={1}>1日</option>
+                    <option value={3}>3日</option>
+                    <option value={7}>7日</option>
+                    <option value={14}>14日</option>
+                    <option value={30}>30日</option>
                   </select>
                 </div>
               </div>
@@ -259,7 +259,7 @@ export function InviteLinkGenerator({
                   htmlFor="email"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Restrict to Email (optional)
+                  メールアドレス制限（任意）
                 </label>
                 <input
                   id="email"
@@ -271,7 +271,7 @@ export function InviteLinkGenerator({
                   disabled={creating}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Leave empty to allow anyone with the link to join
+                  空欄にするとリンクを知っている誰でも参加可能
                 </p>
               </div>
 
@@ -285,7 +285,7 @@ export function InviteLinkGenerator({
                 ) : (
                   <Link2 className="w-4 h-4" />
                 )}
-                Generate Invitation Link
+                招待リンクを生成
               </button>
             </form>
           </div>
@@ -294,7 +294,7 @@ export function InviteLinkGenerator({
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-gray-900">
-                Active Invitations
+                有効な招待
               </h3>
               <button
                 onClick={fetchInvitations}
@@ -313,7 +313,7 @@ export function InviteLinkGenerator({
               </div>
             ) : invitations.length === 0 ? (
               <div className="text-center py-8 text-gray-500 text-sm">
-                No active invitations
+                有効な招待がありません
               </div>
             ) : (
               <div className="space-y-3">
@@ -334,7 +334,7 @@ export function InviteLinkGenerator({
                             </span>
                             {invitation.email && (
                               <span className="text-xs text-gray-500 truncate">
-                                for {invitation.email}
+                                対象: {invitation.email}
                               </span>
                             )}
                           </div>
@@ -348,7 +348,7 @@ export function InviteLinkGenerator({
                           <button
                             onClick={() => copyToClipboard(invitation.code)}
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Copy invitation link"
+                            title="招待リンクをコピー"
                           >
                             {copiedCode === invitation.code ? (
                               <Check className="w-4 h-4 text-green-600" />
@@ -359,7 +359,7 @@ export function InviteLinkGenerator({
                           <button
                             onClick={() => handleRevokeInvitation(invitation.id)}
                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Revoke invitation"
+                            title="招待を取り消し"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -379,7 +379,7 @@ export function InviteLinkGenerator({
             onClick={onClose}
             className="w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
           >
-            Close
+            閉じる
           </button>
         </div>
       </div>

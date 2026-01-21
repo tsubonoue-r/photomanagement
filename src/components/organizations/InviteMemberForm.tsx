@@ -37,14 +37,14 @@ export function InviteMemberForm({
     e.preventDefault();
 
     if (!email.trim()) {
-      setError('Email is required');
+      setError('メールアドレスは必須です');
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+      setError('有効なメールアドレスを入力してください');
       return;
     }
 
@@ -67,12 +67,12 @@ export function InviteMemberForm({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to invite member');
+        throw new Error(result.error || 'メンバーの招待に失敗しました');
       }
 
       onMemberAdded();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to invite member');
+      setError(err instanceof Error ? err.message : 'メンバーの招待に失敗しました');
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export function InviteMemberForm({
               <UserPlus className="w-5 h-5 text-green-600" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
-              Invite Member
+              メンバーを招待
             </h2>
           </div>
           <button
@@ -113,7 +113,7 @@ export function InviteMemberForm({
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email Address <span className="text-red-500">*</span>
+              メールアドレス <span className="text-red-500">*</span>
             </label>
             <input
               id="email"
@@ -126,7 +126,7 @@ export function InviteMemberForm({
               autoFocus
             />
             <p className="text-xs text-gray-500 mt-1">
-              The user must have an existing account
+              ユーザーは既存のアカウントが必要です
             </p>
           </div>
 
@@ -136,7 +136,7 @@ export function InviteMemberForm({
               htmlFor="role"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Role
+              役割
             </label>
             <select
               id="role"
@@ -157,18 +157,17 @@ export function InviteMemberForm({
           {/* Role Descriptions */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <h4 className="text-sm font-medium text-gray-700">
-              Role Permissions:
+              役割の権限:
             </h4>
             <ul className="text-xs text-gray-600 space-y-1">
               <li>
-                <strong>Admin:</strong> Can manage members and organization
-                settings
+                <strong>管理者:</strong> メンバーと組織設定を管理可能
               </li>
               <li>
-                <strong>Member:</strong> Can create and manage projects
+                <strong>メンバー:</strong> プロジェクトの作成と管理が可能
               </li>
               <li>
-                <strong>Viewer:</strong> Read-only access to projects
+                <strong>閲覧者:</strong> プロジェクトの閲覧のみ可能
               </li>
             </ul>
           </div>
@@ -181,7 +180,7 @@ export function InviteMemberForm({
               className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               disabled={loading}
             >
-              Cancel
+              キャンセル
             </button>
             <button
               type="submit"
@@ -189,7 +188,7 @@ export function InviteMemberForm({
               disabled={loading || !email.trim()}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Invite Member
+              メンバーを招待
             </button>
           </div>
         </form>

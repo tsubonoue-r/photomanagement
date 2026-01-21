@@ -75,20 +75,20 @@ export function MemberList({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to update member role');
+        throw new Error(result.error || '役割の更新に失敗しました');
       }
 
       setChangingRole(null);
       onMemberUpdated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update member role');
+      setError(err instanceof Error ? err.message : '役割の更新に失敗しました');
     } finally {
       setLoading(null);
     }
   };
 
   const handleRemoveMember = async (memberId: string) => {
-    if (!confirm('Are you sure you want to remove this member?')) return;
+    if (!confirm('このメンバーを削除してもよろしいですか？')) return;
 
     try {
       setLoading(memberId);
@@ -104,12 +104,12 @@ export function MemberList({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to remove member');
+        throw new Error(result.error || 'メンバーの削除に失敗しました');
       }
 
       onMemberUpdated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to remove member');
+      setError(err instanceof Error ? err.message : 'メンバーの削除に失敗しました');
     } finally {
       setLoading(null);
     }
@@ -158,10 +158,10 @@ export function MemberList({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-900">
-                      {member.user.name || 'Unnamed User'}
+                      {member.user.name || '名前未設定'}
                     </span>
                     {isCurrentUser && (
-                      <span className="text-xs text-gray-500">(you)</span>
+                      <span className="text-xs text-gray-500">(あなた)</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1 text-sm text-gray-500">
@@ -237,7 +237,7 @@ export function MemberList({
                               }}
                               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg"
                             >
-                              Change Role
+                              役割を変更
                             </button>
                           )}
                           {canRemove && (
@@ -248,7 +248,7 @@ export function MemberList({
                               }}
                               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg"
                             >
-                              Remove Member
+                              メンバーを削除
                             </button>
                           )}
                         </div>

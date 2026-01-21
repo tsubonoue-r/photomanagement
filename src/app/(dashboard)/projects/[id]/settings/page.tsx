@@ -86,7 +86,7 @@ export default function ProjectSettingsPage() {
       setEndDate(proj.endDate ? proj.endDate.split('T')[0] : '');
       setStatus(proj.status);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load project');
+      setError(err instanceof Error ? err.message : 'プロジェクトの読み込みに失敗しました');
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ export default function ProjectSettingsPage() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      setError('Project name is required');
+      setError('プロジェクト名は必須です');
       return;
     }
 
@@ -124,13 +124,13 @@ export default function ProjectSettingsPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to update project');
+        throw new Error(data.error || 'プロジェクトの更新に失敗しました');
       }
 
-      setSuccess('Project settings saved successfully');
+      setSuccess('プロジェクト設定を保存しました');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
+      setError(err instanceof Error ? err.message : '保存に失敗しました');
     } finally {
       setSaving(false);
     }
@@ -138,7 +138,7 @@ export default function ProjectSettingsPage() {
 
   const handleDelete = async () => {
     if (deleteConfirmName !== project?.name) {
-      setError('Please type the project name correctly to confirm');
+      setError('確認のためプロジェクト名を正しく入力してください');
       return;
     }
 
@@ -152,21 +152,21 @@ export default function ProjectSettingsPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to delete project');
+        throw new Error(data.error || 'プロジェクトの削除に失敗しました');
       }
 
       router.push('/projects');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete');
+      setError(err instanceof Error ? err.message : '削除に失敗しました');
       setDeleting(false);
     }
   };
 
   const statusOptions: { value: ProjectStatus; label: string }[] = [
-    { value: 'ACTIVE', label: 'Active' },
-    { value: 'COMPLETED', label: 'Completed' },
-    { value: 'ARCHIVED', label: 'Archived' },
-    { value: 'SUSPENDED', label: 'Suspended' },
+    { value: 'ACTIVE', label: '進行中' },
+    { value: 'COMPLETED', label: '完了' },
+    { value: 'ARCHIVED', label: 'アーカイブ' },
+    { value: 'SUSPENDED', label: '中断' },
   ];
 
   if (loading) {
@@ -181,9 +181,9 @@ export default function ProjectSettingsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900">Project not found</h2>
+          <h2 className="text-xl font-semibold text-gray-900">プロジェクトが見つかりません</h2>
           <Link href="/projects" className="mt-4 text-blue-600 hover:text-blue-500">
-            Back to projects
+            プロジェクト一覧に戻る
           </Link>
         </div>
       </div>
@@ -215,7 +215,7 @@ export default function ProjectSettingsPage() {
               </svg>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Project Settings</h1>
+              <h1 className="text-2xl font-bold text-gray-900">プロジェクト設定</h1>
               <p className="text-sm text-gray-600">{project.name}</p>
             </div>
           </div>
@@ -238,95 +238,95 @@ export default function ProjectSettingsPage() {
 
         {/* Basic Information */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">基本情報</h2>
 
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Project Name *
+                  プロジェクト名 *
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter project name"
+                  placeholder="プロジェクト名を入力"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Project Code
+                  プロジェクトコード
                 </label>
                 <input
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., PRJ-001"
+                  placeholder="例: PRJ-001"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
+                説明
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Project description"
+                placeholder="プロジェクトの説明"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Client Name
+                  クライアント名
                 </label>
                 <input
                   type="text"
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Client name"
+                  placeholder="クライアント名"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contractor Name
+                  施工者名
                 </label>
                 <input
                   type="text"
                   value={contractorName}
                   onChange={(e) => setContractorName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Contractor name"
+                  placeholder="施工者名"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Location
+                場所
               </label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Project location"
+                placeholder="プロジェクトの場所"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date
+                  開始日
                 </label>
                 <input
                   type="date"
@@ -338,7 +338,7 @@ export default function ProjectSettingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  End Date
+                  終了日
                 </label>
                 <input
                   type="date"
@@ -351,7 +351,7 @@ export default function ProjectSettingsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
+                ステータス
               </label>
               <select
                 value={status}
@@ -373,14 +373,14 @@ export default function ProjectSettingsPage() {
               disabled={saving}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? '保存中...' : '変更を保存'}
             </button>
           </div>
         </div>
 
         {/* Team Members */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Team Members</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">チームメンバー</h2>
 
           {project.members && project.members.length > 0 ? (
             <div className="space-y-3">
@@ -417,47 +417,47 @@ export default function ProjectSettingsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No team members yet</p>
+            <p className="text-sm text-gray-500">メンバーはまだいません</p>
           )}
         </div>
 
         {/* Danger Zone */}
         <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
-          <h2 className="text-lg font-semibold text-red-600 mb-4">Danger Zone</h2>
+          <h2 className="text-lg font-semibold text-red-600 mb-4">危険な操作</h2>
 
           {!showDeleteConfirm ? (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Delete this project</p>
+                <p className="text-sm font-medium text-gray-900">このプロジェクトを削除</p>
                 <p className="text-sm text-gray-500">
-                  Once deleted, all project data including photos and albums will be permanently removed.
+                  削除すると、写真やアルバムを含む全てのプロジェクトデータが完全に削除されます。
                 </p>
               </div>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
               >
-                Delete Project
+                プロジェクトを削除
               </button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-700">
-                  This action cannot be undone. All photos, albums, and project data will be permanently deleted.
+                  この操作は取り消せません。全ての写真、アルバム、プロジェクトデータが完全に削除されます。
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type <span className="font-mono bg-gray-100 px-1">{project.name}</span> to confirm
+                  確認のため <span className="font-mono bg-gray-100 px-1">{project.name}</span> と入力
                 </label>
                 <input
                   type="text"
                   value={deleteConfirmName}
                   onChange={(e) => setDeleteConfirmName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                  placeholder="Enter project name"
+                  placeholder="プロジェクト名を入力"
                 />
               </div>
 
@@ -467,7 +467,7 @@ export default function ProjectSettingsPage() {
                   disabled={deleting || deleteConfirmName !== project.name}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {deleting ? 'Deleting...' : 'Delete Project'}
+                  {deleting ? '削除中...' : 'プロジェクトを削除'}
                 </button>
                 <button
                   onClick={() => {
@@ -476,7 +476,7 @@ export default function ProjectSettingsPage() {
                   }}
                   className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Cancel
+                  キャンセル
                 </button>
               </div>
             </div>

@@ -75,7 +75,7 @@ export function OrganizationCard({
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg"
                     >
-                      Edit Organization
+                      組織を編集
                     </button>
                     <Link
                       href={`/organizations/${organization.id}/settings`}
@@ -83,7 +83,7 @@ export function OrganizationCard({
                       onClick={() => setShowMenu(false)}
                     >
                       <Settings className="w-4 h-4 inline-block mr-2" />
-                      Settings
+                      設定
                     </Link>
                     {userRole === 'OWNER' && (
                       <button
@@ -93,7 +93,7 @@ export function OrganizationCard({
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg"
                       >
-                        Delete Organization
+                        組織を削除
                       </button>
                     )}
                   </div>
@@ -117,15 +117,13 @@ export function OrganizationCard({
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             <span>
-              {organization._count.members}{' '}
-              {organization._count.members === 1 ? 'member' : 'members'}
+              {organization._count.members}人のメンバー
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Folder className="w-4 h-4" />
             <span>
-              {organization._count.projects}{' '}
-              {organization._count.projects === 1 ? 'project' : 'projects'}
+              {organization._count.projects}件のプロジェクト
             </span>
           </div>
         </div>
@@ -137,7 +135,7 @@ export function OrganizationCard({
           href={`/organizations/${organization.id}`}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium"
         >
-          View Organization
+          組織を表示
         </Link>
       </div>
     </div>
