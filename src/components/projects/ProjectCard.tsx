@@ -48,7 +48,7 @@ export function ProjectCard({ project, onEdit, onDelete, compact = false }: Proj
   if (compact) {
     return (
       <Link
-        href={`/projects/${project.id}/photos`}
+        href={`/projects/${project.id}`}
         className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-[0.98] transition-all"
       >
         <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
@@ -92,7 +92,7 @@ export function ProjectCard({ project, onEdit, onDelete, compact = false }: Proj
             </div>
             <div className="min-w-0 flex-1">
               <Link
-                href={`/projects/${project.id}/photos`}
+                href={`/projects/${project.id}`}
                 className="text-base font-semibold text-gray-900 hover:text-blue-600 truncate block"
               >
                 {project.name}
@@ -115,7 +115,7 @@ export function ProjectCard({ project, onEdit, onDelete, compact = false }: Proj
             {showMenu && (
               <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10">
                 <Link
-                  href={`/projects/${project.id}/photos`}
+                  href={`/projects/${project.id}`}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                   onClick={() => setShowMenu(false)}
                 >
